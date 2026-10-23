@@ -1,0 +1,27 @@
+# qwen38-flash-next/harness0-time2400-attempt5-rerun: re-run of the 1 trials that failed at setup or finished at/after 2026-10-12T01:30 UTC
+# (infrastructure problem from then on) of harness0-time2400-attempt5/2026-10-10__10-56-12: 119-tabstop-sentence-split.
+# since: 2026-10-12T01:30
+# Same config as harness0-time2400-attempt5.yaml except n_attempts and the task list. Merge afterwards with
+#   python3 subset/tools/rerun_failed.py merge qwen38-flash-next/harness0-time2400-attempt5 --apply
+n_attempts: 1
+n_concurrent_trials: 4
+datasets:
+- path: tasks
+  task_names:
+  - 119-tabstop-sentence-split
+agents:
+- name: null
+  model_name: openai/qwen3.8-flash-next
+  kwargs:
+    api_base: http://<qwen38-vllm-host>:8000/v1
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 262144
+      max_output_tokens: 32768
+      input_cost_per_token: 1.5e-07
+      output_cost_per_token: 4.7e-07
+    time_budget_sec: 2400
+    show_budget: false
+  import_path: harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7

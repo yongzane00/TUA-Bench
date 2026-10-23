@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);--h0:#52514e;--h7:#eda100}
+@media (prefers-color-scheme: dark){:root{--bg:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);--h0:#c3c2b7;--h7:#c98500}}
+.t1{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.hidden{stroke:var(--h0);fill:var(--h0)}.shown{stroke:var(--h7);fill:var(--h7)}.line{fill:none;stroke-width:2}.mark{stroke:var(--bg);stroke-width:2}
+</style>
+<rect width="900" height="560" style="fill:var(--bg)"/>
+<rect x=".5" y=".5" width="899" height="559" style="fill:none;stroke:var(--ring)"/>
+<text x="32" y="34" class="t1" font-size="17" font-weight="600">Solved trials vs total cost — qwen3.8-flash-next</text>
+<text x="32" y="54" class="t2" font-size="12.5">one point per run of 200 trials (40 tasks × 5) · label = time budget · cost = harbor <tspan font-family="monospace">cost_usd</tspan> summed over the run (no cache discount)</text>
+<line x1="32" x2="54" y1="82" y2="82" class="line shown"/><circle cx="43" cy="82" r="5" class="mark shown"/><text x="62" y="86" class="t2" font-size="12">shown (H7: budget + clock told)</text>
+<line x1="322" x2="344" y1="82" y2="82" class="line hidden"/><circle cx="333" cy="82" r="5" class="mark hidden"/><text x="352" y="86" class="t2" font-size="12">hidden (H0 + same stop, not told)</text>
+<line x1="70" x2="860" y1="490.0" y2="490.0" style="stroke:var(--grid)"/><text x="62" y="494.0" class="tm" font-size="11" text-anchor="end">60</text>
+<line x1="70" x2="860" y1="427.0" y2="427.0" style="stroke:var(--grid)"/><text x="62" y="431.0" class="tm" font-size="11" text-anchor="end">70</text>
+<line x1="70" x2="860" y1="364.0" y2="364.0" style="stroke:var(--grid)"/><text x="62" y="368.0" class="tm" font-size="11" text-anchor="end">80</text>
+<line x1="70" x2="860" y1="301.0" y2="301.0" style="stroke:var(--grid)"/><text x="62" y="305.0" class="tm" font-size="11" text-anchor="end">90</text>
+<line x1="70" x2="860" y1="238.0" y2="238.0" style="stroke:var(--grid)"/><text x="62" y="242.0" class="tm" font-size="11" text-anchor="end">100</text>
+<line x1="70" x2="860" y1="175.0" y2="175.0" style="stroke:var(--grid)"/><text x="62" y="179.0" class="tm" font-size="11" text-anchor="end">110</text>
+<line x1="70" x2="860" y1="112.0" y2="112.0" style="stroke:var(--grid)"/><text x="62" y="116.0" class="tm" font-size="11" text-anchor="end">120</text>
+<line x1="76.8" x2="76.8" y1="112" y2="490" style="stroke:var(--grid)"/><text x="76.8" y="508" class="tm" font-size="11" text-anchor="middle">$3</text>
+<line x1="236.3" x2="236.3" y1="112" y2="490" style="stroke:var(--grid)"/><text x="236.3" y="508" class="tm" font-size="11" text-anchor="middle">$5</text>
+<line x1="341.4" x2="341.4" y1="112" y2="490" style="stroke:var(--grid)"/><text x="341.4" y="508" class="tm" font-size="11" text-anchor="middle">$7</text>
+<line x1="452.7" x2="452.7" y1="112" y2="490" style="stroke:var(--grid)"/><text x="452.7" y="508" class="tm" font-size="11" text-anchor="middle">$10</text>
+<line x1="579.4" x2="579.4" y1="112" y2="490" style="stroke:var(--grid)"/><text x="579.4" y="508" class="tm" font-size="11" text-anchor="middle">$15</text>
+<line x1="669.2" x2="669.2" y1="112" y2="490" style="stroke:var(--grid)"/><text x="669.2" y="508" class="tm" font-size="11" text-anchor="middle">$20</text>
+<line x1="795.8" x2="795.8" y1="112" y2="490" style="stroke:var(--grid)"/><text x="795.8" y="508" class="tm" font-size="11" text-anchor="middle">$30</text>
+<line x1="70" x2="860" y1="490" y2="490" style="stroke:var(--axis)"/><text x="465.0" y="530" class="tm" font-size="12" text-anchor="middle">Total cost_usd for the run (log scale)</text>
+<text x="20" y="301.0" class="tm" font-size="12" text-anchor="middle" transform="rotate(-90 20 301.0)">Solved trials (of 200)</text>
+<path class="line hidden" d="M151.1,433.3 L255.0,313.6 L322.1,319.9 L477.9,351.4 L790.3,269.5"/>
+<path class="line shown" d="M139.7,357.7 L252.1,319.9 L309.4,244.3 L422.9,212.8"/>
+<circle cx="139.7" cy="357.7" r="6" class="mark shown"><title>shown 1200 s: 81 of 200 solved · total cost_usd $3.67 ($0.0183 per trial) · score 0.443</title></circle>
+<text x="139.7" y="345.7" class="t2" font-size="11" text-anchor="middle">1200 s · 81 · $3.67</text>
+<circle cx="252.1" cy="319.9" r="6" class="mark shown"><title>shown 1800 s: 87 of 200 solved · total cost_usd $5.26 ($0.0263 per trial) · score 0.467</title></circle>
+<text x="184.1" y="323.9" class="t2" font-size="11" text-anchor="middle">1800 s · 87 · $5.26</text>
+<circle cx="309.4" cy="244.3" r="6" class="mark shown"><title>shown 2400 s: 99 of 200 solved · total cost_usd $6.32 ($0.0316 per trial) · score 0.539</title></circle>
+<text x="309.4" y="232.3" class="t2" font-size="11" text-anchor="middle">2400 s · 99 · $6.32</text>
+<circle cx="422.9" cy="212.8" r="6" class="mark shown"><title>shown 3600 s: 104 of 200 solved · total cost_usd $9.09 ($0.0454 per trial) · score 0.571</title></circle>
+<text x="422.9" y="200.8" class="t2" font-size="11" text-anchor="middle">3600 s · 104 · $9.09</text>
+<circle cx="151.1" cy="433.3" r="6" class="mark hidden"><title>hidden 1200 s: 69 of 200 solved · total cost_usd $3.81 ($0.0190 per trial) · score 0.366</title></circle>
+<text x="151.1" y="453.3" class="t2" font-size="11" text-anchor="middle">1200 s · 69 · $3.81</text>
+<circle cx="255.0" cy="313.6" r="6" class="mark hidden"><title>hidden 1800 s: 88 of 200 solved · total cost_usd $5.31 ($0.0265 per trial) · score 0.463</title></circle>
+<text x="255.0" y="301.6" class="t2" font-size="11" text-anchor="middle">1800 s · 88 · $5.31</text>
+<circle cx="322.1" cy="319.9" r="6" class="mark hidden"><title>hidden 2400 s: 87 of 200 solved · total cost_usd $6.58 ($0.0329 per trial) · score 0.459</title></circle>
+<text x="322.1" y="339.9" class="t2" font-size="11" text-anchor="middle">2400 s · 87 · $6.58</text>
+<circle cx="477.9" cy="351.4" r="6" class="mark hidden"><title>hidden 3600 s: 82 of 200 solved · total cost_usd $10.84 ($0.0542 per trial) · score 0.434</title></circle>
+<text x="477.9" y="371.4" class="t2" font-size="11" text-anchor="middle">3600 s · 82 · $10.84</text>
+<circle cx="790.3" cy="269.5" r="6" class="mark hidden"><title>hidden 12000 s: 95 of 200 solved · total cost_usd $29.48 ($0.1474 per trial) · score 0.534</title></circle>
+<text x="790.3" y="289.5" class="t2" font-size="11" text-anchor="middle">12000 s · 95 · $29.48</text>
+<text x="32" y="548" class="tm" font-size="10.5">Solved = reward 1. Up and to the left is better. Hover a point for its numbers. Write-up: subset/results/qwen38-h0-vs-h7.md.</text>
+</svg>

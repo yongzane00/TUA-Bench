@@ -1,0 +1,66 @@
+# qwen38-flash-next/harness0-time1800-attempt5-rerun: re-run of the 71 trials that failed at setup or finished at/after 2026-10-12T01:30 UTC
+# (infrastructure problem from then on) of harness0-time1800-attempt5/2026-10-11__22-58-31: 003-rebuild-energy-model, 005-optimize-cold-plate, 007-reconstruct-prostate-obj, 009-repair-org-chart-layout, 012-hide-na-budget-values, 016-count-invoice-pivot, 018-calculate-total-earnings, 020-calculate-period-rate, 021-fill-ramp-chart, 025-product-channel-pivots, 029-natural-products-page, 030-womens-nike-jerseys, 033-prostate-volume-est, 034-turn-off-dark-mode, 038-zurich-rental-car, 039-manchester-forecast, 042-black-sale-coffee-makers, 043-load-hello-extension, 044-etsy-saved-passwords, 045-united-bag-fee-page, 046-restore-tripadvisor-tab, 048-tamiflu-side-effects, 050-mri-png-slices, 052-vignette-filter-window, 054-prostate-label-obj, 059-make-summary-slide, 061-insert-features-table, 067-align-slide-textboxes, 069-linux-ls-tutorial, 071-paste-image-docx, 088-extract-presenter-photos, 089-install-recommended-exts, 094-author-homepage-bookmarks, 095-save-apple-searching-page, 096-first-author-table, 099-professor-contact-info, 100-name-mountain-photos, 109-setup-outlook-account, 115-remove-explorer-find-key, 119-tabstop-sentence-split.
+# since: 2026-10-12T01:30
+# Same config as harness0-time1800-attempt5.yaml except n_attempts and the task list. Merge afterwards with
+#   python3 subset/tools/rerun_failed.py merge qwen38-flash-next/harness0-time1800-attempt5 --apply
+n_attempts: 2
+n_concurrent_trials: 4
+datasets:
+- path: tasks
+  task_names:
+  - 003-rebuild-energy-model
+  - 005-optimize-cold-plate
+  - 007-reconstruct-prostate-obj
+  - 009-repair-org-chart-layout
+  - 012-hide-na-budget-values
+  - 016-count-invoice-pivot
+  - 018-calculate-total-earnings
+  - 020-calculate-period-rate
+  - 021-fill-ramp-chart
+  - 025-product-channel-pivots
+  - 029-natural-products-page
+  - 030-womens-nike-jerseys
+  - 033-prostate-volume-est
+  - 034-turn-off-dark-mode
+  - 038-zurich-rental-car
+  - 039-manchester-forecast
+  - 042-black-sale-coffee-makers
+  - 043-load-hello-extension
+  - 044-etsy-saved-passwords
+  - 045-united-bag-fee-page
+  - 046-restore-tripadvisor-tab
+  - 048-tamiflu-side-effects
+  - 050-mri-png-slices
+  - 052-vignette-filter-window
+  - 054-prostate-label-obj
+  - 059-make-summary-slide
+  - 061-insert-features-table
+  - 067-align-slide-textboxes
+  - 069-linux-ls-tutorial
+  - 071-paste-image-docx
+  - 088-extract-presenter-photos
+  - 089-install-recommended-exts
+  - 094-author-homepage-bookmarks
+  - 095-save-apple-searching-page
+  - 096-first-author-table
+  - 099-professor-contact-info
+  - 100-name-mountain-photos
+  - 109-setup-outlook-account
+  - 115-remove-explorer-find-key
+  - 119-tabstop-sentence-split
+agents:
+- name: null
+  model_name: openai/qwen3.8-flash-next
+  kwargs:
+    api_base: http://<qwen38-vllm-host>:8000/v1
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 262144
+      max_output_tokens: 32768
+      input_cost_per_token: 1.5e-07
+      output_cost_per_token: 4.7e-07
+    time_budget_sec: 1800
+    show_budget: false
+  import_path: harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7

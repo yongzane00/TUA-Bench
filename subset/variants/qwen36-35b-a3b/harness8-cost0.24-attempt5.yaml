@@ -1,0 +1,77 @@
+# qwen36-35b-a3b/harness8-cost0.24-attempt5 — generated from baseline.yaml by make_variant.py.
+# Do not hand-edit; regenerate instead. Changes vs baseline:
+#   n_attempts = 5
+#   n_concurrent_trials = 4
+#   agents.0.name = null
+#   agents.0.import_path = harbor.agents.terminus_2.terminus_2_harness8:Terminus2Harness8
+#   agents.0.kwargs.cost_budget_usd = 0.24
+#   agents.0.model_name = openai/nvidia/Qwen3.6-35B-A3B-NVFP4
+#   agents.0.kwargs.api_base = http://<qwen36-vllm-host>:8000/v1
+#   agents.0.kwargs.model_info.max_input_tokens = 262144
+#   agents.0.kwargs.model_info.input_cost_per_token = 5.0e-08
+#   agents.0.kwargs.model_info.output_cost_per_token = 7.0e-07
+#   agents.0.kwargs.llm_call_kwargs = {max_tokens: 32768}
+#
+#   harbor run -c subset/variants/qwen36-35b-a3b/harness8-cost0.24-attempt5.yaml -o jobs/qwen36-35b-a3b/harness8-cost0.24-attempt5
+n_attempts: 5
+n_concurrent_trials: 4
+datasets:
+- path: tasks
+  task_names:
+  - 029-natural-products-page
+  - 034-turn-off-dark-mode
+  - 044-etsy-saved-passwords
+  - 045-united-bag-fee-page
+  - 046-restore-tripadvisor-tab
+  - 048-tamiflu-side-effects
+  - 052-vignette-filter-window
+  - 115-remove-explorer-find-key
+  - 009-repair-org-chart-layout
+  - 012-hide-na-budget-values
+  - 016-count-invoice-pivot
+  - 018-calculate-total-earnings
+  - 020-calculate-period-rate
+  - 021-fill-ramp-chart
+  - 025-product-channel-pivots
+  - 030-womens-nike-jerseys
+  - 038-zurich-rental-car
+  - 039-manchester-forecast
+  - 042-black-sale-coffee-makers
+  - 043-load-hello-extension
+  - 050-mri-png-slices
+  - 054-prostate-label-obj
+  - 059-make-summary-slide
+  - 061-insert-features-table
+  - 067-align-slide-textboxes
+  - 069-linux-ls-tutorial
+  - 071-paste-image-docx
+  - 088-extract-presenter-photos
+  - 089-install-recommended-exts
+  - 094-author-homepage-bookmarks
+  - 095-save-apple-searching-page
+  - 096-first-author-table
+  - 099-professor-contact-info
+  - 100-name-mountain-photos
+  - 119-tabstop-sentence-split
+  - 003-rebuild-energy-model
+  - 005-optimize-cold-plate
+  - 007-reconstruct-prostate-obj
+  - 033-prostate-volume-est
+  - 109-setup-outlook-account
+agents:
+- name: null
+  model_name: openai/nvidia/Qwen3.6-35B-A3B-NVFP4
+  kwargs:
+    api_base: http://<qwen36-vllm-host>:8000/v1
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 262144
+      max_output_tokens: 32768
+      input_cost_per_token: 5.0e-08
+      output_cost_per_token: 7.0e-07
+    cost_budget_usd: 0.24
+    llm_call_kwargs:
+      max_tokens: 32768
+  import_path: harbor.agents.terminus_2.terminus_2_harness8:Terminus2Harness8

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 572" width="960" height="572" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<rect width="960" height="572" fill="#fcfcfb"/>
+<rect x="0.5" y="0.5" width="959" height="571" fill="none" stroke="rgba(11,11,11,0.10)"/>
+<text x="40" y="34" fill="#0b0b0b" font-size="17" font-weight="600">terminus-2 × qwen3.8-flash-next — accuracy vs cost, per task</text>
+<text x="40" y="55" fill="#52514e" font-size="12.5">harness0-attempt5 · 40-task subset × 5 attempts = 200 trials · 2026-09-23 14:45 → 09-24 11:05 · repo on ext4, output on /mnt/c</text>
+<circle cx="48.0" cy="80.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>easy</title></circle>
+<text x="60" y="84" fill="#52514e" font-size="12.5">easy</text>
+<rect x="128.5" y="74.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>medium</title></rect>
+<text x="146" y="84" fill="#52514e" font-size="12.5">medium</text>
+<path d="M220.0,72.5 L227.5,80.0 L220.0,87.5 L212.5,80.0 Z" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>hard</title></path>
+<text x="232" y="84" fill="#52514e" font-size="12.5">hard</text>
+<text x="304" y="84" fill="#898781" font-size="12">one point per task · 5 attempts each</text>
+<text x="40" y="110" fill="#0b0b0b" font-size="13.5" font-weight="600">All 40 tasks</text>
+<text x="140" y="110" fill="#898781" font-size="11">mean reward over graded attempts</text>
+<line x1="86" y1="450" x2="610" y2="450" stroke="#e1e0d9"/>
+<text x="78" y="454" fill="#898781" font-size="11" text-anchor="end">0%</text>
+<line x1="86" y1="368.0" x2="610" y2="368.0" stroke="#e1e0d9"/>
+<text x="78" y="372.0" fill="#898781" font-size="11" text-anchor="end">25%</text>
+<line x1="86" y1="286.0" x2="610" y2="286.0" stroke="#e1e0d9"/>
+<text x="78" y="290.0" fill="#898781" font-size="11" text-anchor="end">50%</text>
+<line x1="86" y1="204.0" x2="610" y2="204.0" stroke="#e1e0d9"/>
+<text x="78" y="208.0" fill="#898781" font-size="11" text-anchor="end">75%</text>
+<line x1="86" y1="122" x2="610" y2="122" stroke="#e1e0d9"/>
+<text x="78" y="126" fill="#898781" font-size="11" text-anchor="end">100%</text>
+<line x1="86" y1="450" x2="610" y2="450" stroke="#c3c2b7"/>
+<text x="-286.0" y="30" fill="#52514e" font-size="12" text-anchor="middle" transform="rotate(-90)">mean reward</text>
+<circle cx="151.1" cy="122.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>029-natural-products-page (easy, debian:bookworm) — reward 1.00, 5/5 passed, $0.0112/attempt</title></circle>
+<circle cx="315.1" cy="122.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>034-turn-off-dark-mode (easy, debian:bookworm) — reward 1.00, 5/5 passed, $0.0394/attempt</title></circle>
+<circle cx="223.9" cy="122.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>044-etsy-saved-passwords (easy, debian:bookworm) — reward 1.00, 5/5 passed, $0.0237/attempt</title></circle>
+<circle cx="215.4" cy="122.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>045-united-bag-fee-page (easy, debian:bookworm) — reward 1.00, 5/5 passed, $0.0222/attempt</title></circle>
+<circle cx="123.2" cy="122.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>046-restore-tripadvisor-tab (easy, debian:bookworm) — reward 1.00, 5/5 passed, $0.0064/attempt</title></circle>
+<circle cx="149.6" cy="122.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>048-tamiflu-side-effects (easy, debian:bookworm) — reward 1.00, 5/5 passed, $0.0109/attempt</title></circle>
+<circle cx="443.0" cy="450.0" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>052-vignette-filter-window (easy, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0613/attempt</title></circle>
+<text x="443.0" y="436.0" fill="#0b0b0b" font-size="11" text-anchor="middle">052 · easy, never solved</text>
+<circle cx="103.7" cy="318.8" r="6" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>115-remove-explorer-find-key (easy, debian:bookworm) — reward 0.40, 2/5 passed, $0.0030/attempt</title></circle>
+<rect x="316.9" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>009-repair-org-chart-layout (medium, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0406/attempt</title></rect>
+<rect x="120.4" y="378.9" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>012-hide-na-budget-values (medium, ubuntu:24.04) — reward 0.20, 1/5 passed, $0.0069/attempt</title></rect>
+<rect x="245.8" y="378.9" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>016-count-invoice-pivot (medium, ubuntu:24.04) — reward 0.20, 1/5 passed, $0.0284/attempt</title></rect>
+<rect x="119.8" y="116.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>018-calculate-total-earnings (medium, ubuntu:24.04) — reward 1.00, 5/5 passed, $0.0067/attempt</title></rect>
+<rect x="104.4" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>020-calculate-period-rate (medium, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0041/attempt</title></rect>
+<rect x="119.0" y="247.7" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>021-fill-ramp-chart (medium, ubuntu:24.04) — reward 0.60, 3/5 passed, $0.0066/attempt</title></rect>
+<rect x="327.6" y="378.9" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>025-product-channel-pivots (medium, ubuntu:24.04) — reward 0.20, 1/5 passed, $0.0424/attempt</title></rect>
+<rect x="266.1" y="313.3" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>030-womens-nike-jerseys (medium, debian:bookworm) — reward 0.40, 2/5 passed, $0.0319/attempt</title></rect>
+<rect x="221.4" y="116.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>038-zurich-rental-car (medium, debian:bookworm) — reward 1.00, 5/5 passed, $0.0242/attempt</title></rect>
+<rect x="308.9" y="116.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>039-manchester-forecast (medium, debian:bookworm) — reward 1.00, 5/5 passed, $0.0392/attempt</title></rect>
+<rect x="170.0" y="182.1" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>042-black-sale-coffee-makers (medium, debian:bookworm) — reward 0.80, 4/5 passed, $0.0154/attempt</title></rect>
+<rect x="201.4" y="116.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>043-load-hello-extension (medium, debian:bookworm) — reward 1.00, 5/5 passed, $0.0208/attempt</title></rect>
+<rect x="206.4" y="182.1" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>050-mri-png-slices (medium, ubuntu:24.04) — reward 0.80, 4/5 passed, $0.0216/attempt</title></rect>
+<rect x="215.9" y="313.3" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>054-prostate-label-obj (medium, ubuntu:24.04) — reward 0.40, 0/5 passed, $0.0232/attempt</title></rect>
+<rect x="464.9" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>059-make-summary-slide (medium, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0660/attempt</title></rect>
+<rect x="95.6" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>061-insert-features-table (medium, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0026/attempt</title></rect>
+<rect x="127.0" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>067-align-slide-textboxes (medium, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0080/attempt</title></rect>
+<rect x="177.4" y="247.7" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>069-linux-ls-tutorial (medium, debian:bookworm) — reward 0.60, 3/5 passed, $0.0166/attempt</title></rect>
+<rect x="106.1" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>071-paste-image-docx (medium, debian:bookworm) — reward 0.00, 0/5 passed, $0.0044/attempt</title></rect>
+<rect x="373.3" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>088-extract-presenter-photos (medium, debian:bookworm) — reward 0.00, 0/5 passed, $0.0503/attempt</title></rect>
+<rect x="417.7" y="378.9" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>089-install-recommended-exts (medium, debian:bookworm) — reward 0.20, 1/5 passed, $0.0579/attempt</title></rect>
+<rect x="528.4" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>094-author-homepage-bookmarks (medium, debian:bookworm) — reward 0.00, 0/5 passed, $0.0769/attempt</title></rect>
+<rect x="227.2" y="249.6" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>095-save-apple-searching-page (medium, debian:bookworm) — reward 0.59, 0/5 passed, $0.0252/attempt</title></rect>
+<rect x="155.6" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>096-first-author-table (medium, debian:bookworm) — reward 0.00, 0/5 passed, $0.0129/attempt</title></rect>
+<rect x="182.5" y="247.7" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>099-professor-contact-info (medium, debian:bookworm) — reward 0.60, 3/5 passed, $0.0175/attempt</title></rect>
+<rect x="496.6" y="444.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>100-name-mountain-photos (medium, debian:bookworm) — reward 0.00, 0/5 passed, $0.0715/attempt</title></rect>
+<rect x="123.8" y="116.5" width="11" height="11" rx="2" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"><title>119-tabstop-sentence-split (medium, ubuntu:24.04) — reward 1.00, 5/5 passed, $0.0074/attempt</title></rect>
+<path d="M582.6,442.5 L590.1,450.0 L582.6,457.5 L575.1,450.0 Z" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>003-rebuild-energy-model (hard, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0853/attempt</title></path>
+<line x1="582.6" y1="442.0" x2="574.6" y2="421.0" stroke="#898781"/>
+<text x="574.6" y="418.0" fill="#0b0b0b" font-size="11" text-anchor="end">003 · most expensive, 0/5</text>
+<path d="M261.2,442.5 L268.7,450.0 L261.2,457.5 L253.7,450.0 Z" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>005-optimize-cold-plate (hard, docker.io/openfoam/openfoam11-paraview510) — reward 0.00, 0/5 passed, $0.0301/attempt</title></path>
+<path d="M499.0,442.5 L506.5,450.0 L499.0,457.5 L491.5,450.0 Z" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>007-reconstruct-prostate-obj (hard, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0709/attempt</title></path>
+<path d="M570.7,442.5 L578.2,450.0 L570.7,457.5 L563.2,450.0 Z" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>033-prostate-volume-est (hard, ubuntu:24.04) — reward 0.00, 0/5 passed, $0.0833/attempt</title></path>
+<path d="M264.6,180.1 L272.1,187.6 L264.6,195.1 L257.1,187.6 Z" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"><title>109-setup-outlook-account (hard, ubuntu:24.04) — reward 0.80, 4/5 passed, $0.0307/attempt</title></path>
+<text x="274.6" y="191.6" fill="#0b0b0b" font-size="11" text-anchor="start">109 · only hard task solved, 4/5</text>
+<text x="86.0" y="466" fill="#898781" font-size="11" text-anchor="middle">$0.00</text>
+<text x="202.4" y="466" fill="#898781" font-size="11" text-anchor="middle">$0.02</text>
+<text x="318.9" y="466" fill="#898781" font-size="11" text-anchor="middle">$0.04</text>
+<text x="435.3" y="466" fill="#898781" font-size="11" text-anchor="middle">$0.06</text>
+<text x="551.8" y="466" fill="#898781" font-size="11" text-anchor="middle">$0.08</text>
+<text x="348.0" y="486" fill="#52514e" font-size="12" text-anchor="middle">cost per attempt (USD)</text>
+<text x="668" y="110" fill="#0b0b0b" font-size="13.5" font-weight="600">200 trials</text>
+<text x="668" y="136" fill="#0b0b0b" font-size="12" font-weight="600">graded — 200</text>
+<rect x="668" y="143" width="250.0" height="13" rx="4" fill="#52514e"/>
+<text x="668" y="172" fill="#52514e" font-size="11.5">84 pass · 8 partial · 108 fail</text>
+<text x="668" y="188" fill="#898781" font-size="11">64 of the fails were timeouts (32%)</text>
+<line x1="668" y1="206" x2="918" y2="206" stroke="#e1e0d9"/>
+<text x="668" y="228" fill="#0b0b0b" font-size="12.5" font-weight="600">Headline</text>
+<text x="668" y="260" fill="#0b0b0b" font-size="20" font-weight="600">0.452</text>
+<text x="740" y="255" fill="#0b0b0b" font-size="12">stratified S</text>
+<text x="740" y="269" fill="#898781" font-size="11">95% CI 0.33–0.57 · subset → 120 tasks</text>
+<text x="668" y="300" fill="#0b0b0b" font-size="20" font-weight="600">0.445</text>
+<text x="740" y="295" fill="#0b0b0b" font-size="12">mean reward</text>
+<text x="740" y="309" fill="#898781" font-size="11">unweighted over 40 tasks</text>
+<text x="668" y="340" fill="#0b0b0b" font-size="20" font-weight="600">42.0%</text>
+<text x="740" y="335" fill="#0b0b0b" font-size="12">Pass@1</text>
+<text x="740" y="349" fill="#898781" font-size="11">reward = 1 on a single attempt</text>
+<text x="668" y="380" fill="#0b0b0b" font-size="20" font-weight="600">57.5%</text>
+<text x="740" y="375" fill="#0b0b0b" font-size="12">Pass@5</text>
+<text x="740" y="389" fill="#898781" font-size="11">solved in at least 1 of 5</text>
+<text x="668" y="420" fill="#0b0b0b" font-size="20" font-weight="600">27.5%</text>
+<text x="740" y="415" fill="#0b0b0b" font-size="12">All-5</text>
+<text x="740" y="429" fill="#898781" font-size="11">solved in all 5</text>
+<line x1="668" y1="450" x2="918" y2="450" stroke="#e1e0d9"/>
+<text x="668" y="472" fill="#52514e" font-size="11.5">$6.04 total · $0.0302 per trial</text>
+<text x="668" y="488" fill="#898781" font-size="11">proxy pricing: $0.15/M in, $0.47/M out</text>
+<line x1="40" y1="534" x2="920" y2="534" stroke="#e1e0d9"/>
+<text x="40" y="555" fill="#52514e" font-size="11.5">Hover a point for task, reward and cost. Every trial produced a grade.</text>
+</svg>

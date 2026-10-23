@@ -1,0 +1,362 @@
+[
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.4313172869886189,
+    "cost": 0.01031175595
+   },
+   {
+    "k": 2,
+    "acc": 0.4432988072818581,
+    "cost": 0.009721746
+   },
+   {
+    "k": 3,
+    "acc": 0.5187759176777761,
+    "cost": 0.01000865665
+   },
+   {
+    "k": 4,
+    "acc": 0.4302043114543115,
+    "cost": 0.00783170935
+   },
+   {
+    "k": 5,
+    "acc": 0.49383513386566463,
+    "cost": 0.00996317165
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.46348629145364584,
+   "cost": 0.00956740792
+  },
+  "pass_at_5": 0.6,
+  "solved_all_5": 0.25,
+  "model": "qwen38",
+  "harness": "H0-time1800",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness0-time1800-attempt5/2026-10-11__22-58-31"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.502115598027127,
+    "cost": 0.0100051908
+   },
+   {
+    "k": 2,
+    "acc": 0.3438172869886189,
+    "cost": 0.0103521604
+   },
+   {
+    "k": 3,
+    "acc": 0.397865598027127,
+    "cost": 0.01052723445
+   },
+   {
+    "k": 4,
+    "acc": 0.535365598027127,
+    "cost": 0.00928057375
+   },
+   {
+    "k": 5,
+    "acc": 0.5563423645320197,
+    "cost": 0.00991219635
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.46710128912040394,
+   "cost": 0.01001547115
+  },
+  "pass_at_5": 0.65,
+  "solved_all_5": 0.225,
+  "model": "qwen38",
+  "harness": "H7-time1800",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness7-time1800-attempt5/2026-10-11__06-00-37"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.4432938314236384,
+    "cost": 0.0132591879
+   },
+   {
+    "k": 2,
+    "acc": 0.39289373536299765,
+    "cost": 0.0111947998
+   },
+   {
+    "k": 3,
+    "acc": 0.45633513386566465,
+    "cost": 0.01089312045
+   },
+   {
+    "k": 4,
+    "acc": 0.518865598027127,
+    "cost": 0.0114292886
+   },
+   {
+    "k": 5,
+    "acc": 0.48131728698861886,
+    "cost": 0.0119082496
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.4585411171336093,
+   "cost": 0.01173692927
+  },
+  "pass_at_5": 0.55,
+  "solved_all_5": 0.275,
+  "model": "qwen38",
+  "harness": "H0-time2400",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness0-time2400-attempt5/2026-10-10__10-56-12"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.447865598027127,
+    "cost": 0.010763247699999999
+   },
+   {
+    "k": 2,
+    "acc": 0.5762988072818581,
+    "cost": 0.013064318200000001
+   },
+   {
+    "k": 3,
+    "acc": 0.5353351338656647,
+    "cost": 0.01298245355
+   },
+   {
+    "k": 4,
+    "acc": 0.5353351338656647,
+    "cost": 0.0094573015
+   },
+   {
+    "k": 5,
+    "acc": 0.5978351338656647,
+    "cost": 0.0114844722
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.5385339613811958,
+   "cost": 0.01155035863
+  },
+  "pass_at_5": 0.7,
+  "solved_all_5": 0.275,
+  "model": "qwen38",
+  "harness": "H7-time2400",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness7-time2400-attempt5/2026-10-08__15-37-09"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.572865598027127,
+    "cost": 0.014253098050000001
+   },
+   {
+    "k": 2,
+    "acc": 0.5768172869886189,
+    "cost": 0.0147089758
+   },
+   {
+    "k": 3,
+    "acc": 0.5895297390636991,
+    "cost": 0.01484185285
+   },
+   {
+    "k": 4,
+    "acc": 0.6350672869886189,
+    "cost": 0.0137787954
+   },
+   {
+    "k": 5,
+    "acc": 0.481115598027127,
+    "cost": 0.0157272904
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.5710791018190382,
+   "cost": 0.0146620025
+  },
+  "pass_at_5": 0.725,
+  "solved_all_5": 0.3,
+  "model": "qwen38",
+  "harness": "H7-time3600",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness7-time3600-attempt5/2026-10-14__13-51-45"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.393209538702111,
+    "cost": 0.0170114728
+   },
+   {
+    "k": 2,
+    "acc": 0.4563303640588691,
+    "cost": 0.01630421405
+   },
+   {
+    "k": 3,
+    "acc": 0.41884203999379943,
+    "cost": 0.0165514467
+   },
+   {
+    "k": 4,
+    "acc": 0.41884203999379943,
+    "cost": 0.0159741498
+   },
+   {
+    "k": 5,
+    "acc": 0.48134203999379943,
+    "cost": 0.01560587435
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.4337132045484757,
+   "cost": 0.01628943154
+  },
+  "pass_at_5": 0.6,
+  "solved_all_5": 0.2,
+  "model": "qwen38",
+  "harness": "H0-time3600",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness0-time3600-attempt5/2026-10-15__15-17-05"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.4353420399937994,
+    "cost": 0.00766309515
+   },
+   {
+    "k": 2,
+    "acc": 0.5228332816857763,
+    "cost": 0.0073761931
+   },
+   {
+    "k": 3,
+    "acc": 0.3850748258875488,
+    "cost": 0.0081283814
+   },
+   {
+    "k": 4,
+    "acc": 0.4353172869886189,
+    "cost": 0.00771660925
+   },
+   {
+    "k": 5,
+    "acc": 0.4347508612590041,
+    "cost": 0.0077259212
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.4426636591629495,
+   "cost": 0.00772204002
+  },
+  "pass_at_5": 0.55,
+  "solved_all_5": 0.325,
+  "model": "qwen38",
+  "harness": "H7-time1200",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness7-time1200-attempt5/2026-10-16__17-04-47"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.3438420399937994,
+    "cost": 0.00724998095
+   },
+   {
+    "k": 2,
+    "acc": 0.33039772727272726,
+    "cost": 0.0078655822
+   },
+   {
+    "k": 3,
+    "acc": 0.3938172869886189,
+    "cost": 0.00778661555
+   },
+   {
+    "k": 4,
+    "acc": 0.3932988072818581,
+    "cost": 0.00730120605
+   },
+   {
+    "k": 5,
+    "acc": 0.3688303640588691,
+    "cost": 0.00835276755
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.36603724511917457,
+   "cost": 0.00771123046
+  },
+  "pass_at_5": 0.5,
+  "solved_all_5": 0.2,
+  "model": "qwen38",
+  "harness": "H0-time1200",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness0-time1200-attempt5/2026-10-17__12-23-16"
+ },
+ {
+  "attempts": [
+   {
+    "k": 1,
+    "acc": 0.4478420399937994,
+    "cost": 0.0353362112
+   },
+   {
+    "k": 2,
+    "acc": 0.5545595944609297,
+    "cost": 0.0351237169
+   },
+   {
+    "k": 3,
+    "acc": 0.6393362002169534,
+    "cost": 0.02882018655
+   },
+   {
+    "k": 4,
+    "acc": 0.5310920399937994,
+    "cost": 0.03525808155
+   },
+   {
+    "k": 5,
+    "acc": 0.4975920399937994,
+    "cost": 0.03383201685
+   }
+  ],
+  "n_tasks": 40,
+  "n_trials": 200,
+  "all": {
+   "acc": 0.5340843829318562,
+   "cost": 0.03367404261
+  },
+  "pass_at_5": 0.675,
+  "solved_all_5": 0.325,
+  "model": "qwen38",
+  "harness": "H0-time12000",
+  "run": "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs/qwen38-flash-next/harness0-time12000-attempt5/2026-10-18__08-46-55"
+ }
+]

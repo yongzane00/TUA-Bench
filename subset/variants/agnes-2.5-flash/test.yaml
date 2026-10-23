@@ -1,0 +1,24 @@
+# agnes-2.5-flash/test: the 3 tasks of test.yaml, 1 attempt, on Agnes AI agnes-2.5-flash.
+# Key: put OPENAI_API_KEY=<agnes key> in .env.agnes (git-ignored) and run with --env-file .env.agnes
+#   uv run harbor run -c subset/variants/agnes-2.5-flash/test.yaml --env-file .env.agnes -o jobs/agnes-2.5-flash/test
+n_attempts: 1
+n_concurrent_trials: 3
+datasets:
+- path: tasks
+  task_names:
+  - 012-hide-na-budget-values
+  - 061-insert-features-table
+  - 003-rebuild-energy-model
+agents:
+- name: terminus-2
+  model_name: openai/agnes-2.5-flash
+  kwargs:
+    api_base: https://apihub.agnes-ai.com/v1
+    temperature: 0.7
+    reasoning_effort: null
+    max_turns: null
+    model_info:
+      max_input_tokens: 524288
+      max_output_tokens: 32768
+      input_cost_per_token: 0.0
+      output_cost_per_token: 0.0

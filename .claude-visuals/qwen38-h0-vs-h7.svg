@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 662" width="940" height="662" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10)}
+.h-H0{fill:#52514e;stroke:#52514e}.h-H7{fill:#eda100;stroke:#eda100}
+@media (prefers-color-scheme: dark){:root{--bg:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10)}.h-H0{fill:#c3c2b7;stroke:#c3c2b7}.h-H7{fill:#c98500;stroke:#c98500}}
+.mark{stroke:var(--bg);stroke-width:2}.pool{fill-opacity:.16;stroke-opacity:.55;stroke-width:1.5}
+.t1{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.key{fill:none;stroke:var(--ink2);stroke-width:1.5}
+</style>
+<rect width="940" height="662" style="fill:var(--bg)"/>
+<rect x=".5" y=".5" width="939" height="661" style="fill:none;stroke:var(--ring)"/>
+<text x="32" y="34" class="t1" font-size="17" font-weight="600">terminus-2 harnesses × models — mean reward vs cost, per attempt and all five</text>
+<text x="32" y="54" class="t2" font-size="12.5">40-task subset × 5 attempts · small marks: each attempt as its own run · circle: holds a run's 5 attempts, + = all 5 pooled · color = harness · shape = model</text>
+<circle cx="37" cy="76" r="5" class="h-H0"/><text x="47" y="80" class="t2" font-size="12">H0-time1800 stock terminus-2</text>
+<circle cx="253.20000000000002" cy="76" r="5" class="h-H7"/><text x="263.20000000000005" y="80" class="t2" font-size="12">H7-time1800 time budget</text>
+<circle cx="437.40000000000003" cy="76" r="5" class="h-H0"/><text x="447.40000000000003" y="80" class="t2" font-size="12">H0-time2400 stock terminus-2</text>
+<circle cx="653.6" cy="76" r="5" class="h-H7"/><text x="663.6" y="80" class="t2" font-size="12">H7-time2400 time budget</text>
+<circle cx="37" cy="97" r="5" class="h-H7"/><text x="47" y="101" class="t2" font-size="12">H7-time3600 time budget</text>
+<circle cx="221.20000000000002" cy="97" r="5" class="h-H0"/><text x="231.20000000000002" y="101" class="t2" font-size="12">H0-time3600 stock terminus-2</text>
+<circle cx="437.40000000000003" cy="97" r="5" class="h-H7"/><text x="447.40000000000003" y="101" class="t2" font-size="12">H7-time1200 time budget</text>
+<circle cx="621.6" cy="97" r="5" class="h-H0"/><text x="631.6" y="101" class="t2" font-size="12">H0-time1200 stock terminus-2</text>
+<circle cx="37" cy="118" r="5" class="h-H0"/><text x="47" y="122" class="t2" font-size="12">H0-time12000 stock terminus-2</text>
+<circle cx="37" cy="139" r="4.5" class="key"/>
+<text x="47" y="143" class="t2" font-size="12">qwen3.8-flash-next</text>
+<circle cx="192.2" cy="139" r="8" style="fill:var(--ink2);fill-opacity:.16;stroke:var(--ink2);stroke-opacity:.55"/><path d="M189.2,139 H195.2 M192.2,136 V142" style="fill:none;stroke:var(--ink2);stroke-width:1.6"/><text x="205.2" y="143" class="t2" font-size="12">a run's 5 attempts, + = all 5 pooled</text>
+<line x1="64" x2="750" y1="590.0" y2="590.0" style="stroke:var(--grid)"/><text x="54" y="594.0" class="tm" font-size="11.5" text-anchor="end">0.0</text>
+<line x1="64" x2="750" y1="529.1" y2="529.1" style="stroke:var(--grid)"/><text x="54" y="533.1" class="tm" font-size="11.5" text-anchor="end">0.1</text>
+<line x1="64" x2="750" y1="468.3" y2="468.3" style="stroke:var(--grid)"/><text x="54" y="472.3" class="tm" font-size="11.5" text-anchor="end">0.2</text>
+<line x1="64" x2="750" y1="407.4" y2="407.4" style="stroke:var(--grid)"/><text x="54" y="411.4" class="tm" font-size="11.5" text-anchor="end">0.3</text>
+<line x1="64" x2="750" y1="346.6" y2="346.6" style="stroke:var(--grid)"/><text x="54" y="350.6" class="tm" font-size="11.5" text-anchor="end">0.4</text>
+<line x1="64" x2="750" y1="285.7" y2="285.7" style="stroke:var(--grid)"/><text x="54" y="289.7" class="tm" font-size="11.5" text-anchor="end">0.5</text>
+<line x1="64" x2="750" y1="224.9" y2="224.9" style="stroke:var(--grid)"/><text x="54" y="228.9" class="tm" font-size="11.5" text-anchor="end">0.6</text>
+<line x1="64" x2="750" y1="164.0" y2="164.0" style="stroke:var(--grid)"/><text x="54" y="168.0" class="tm" font-size="11.5" text-anchor="end">0.7</text>
+<line x1="228.1" x2="228.1" y1="164" y2="590" style="stroke:var(--grid)"/><text x="228.1" y="610" class="tm" font-size="11.5" text-anchor="middle">$0.01</text>
+<line x1="436.9" x2="436.9" y1="164" y2="590" style="stroke:var(--grid)"/><text x="436.9" y="610" class="tm" font-size="11.5" text-anchor="middle">$0.02</text>
+<line x1="713.0" x2="713.0" y1="164" y2="590" style="stroke:var(--grid)"/><text x="713.0" y="610" class="tm" font-size="11.5" text-anchor="middle">$0.05</text>
+<line x1="64" x2="750" y1="590.0" y2="590.0" style="stroke:var(--axis)"/>
+<text x="407.0" y="630" class="tm" font-size="12" text-anchor="middle">Cost per trial (USD, log scale, with prefix caching)</text>
+<text x="18" y="377.0" class="tm" font-size="12" text-anchor="middle" transform="rotate(-90 18 377.0)">Mean reward (harbor Mean)</text>
+<circle cx="577.7" cy="259.2" r="72.9" class="pool h-H0"><title>H0-time12000 stock terminus-2 · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.534, cost $0.0337/trial, pass@5 27 of 40 tasks, solved in all 5 13 of 40 tasks</title></circle>
+<circle cx="232.0" cy="316.1" r="72.0" class="pool h-H7"><title>H7-time1800 time budget · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.467, cost $0.0100/trial, pass@5 26 of 40 tasks, solved in all 5 9 of 40 tasks</title></circle>
+<circle cx="263.8" cy="266.7" r="59.5" class="pool h-H7"><title>H7-time2400 time budget · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.539, cost $0.0116/trial, pass@5 28 of 40 tasks, solved in all 5 11 of 40 tasks</title></circle>
+<circle cx="344.6" cy="250.4" r="57.9" class="pool h-H7"><title>H7-time3600 time budget · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.571, cost $0.0147/trial, pass@5 29 of 40 tasks, solved in all 5 12 of 40 tasks</title></circle>
+<circle cx="195.7" cy="307.2" r="53.3" class="pool h-H0"><title>H0-time1800 stock terminus-2 · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.463, cost $0.0096/trial, pass@5 24 of 40 tasks, solved in all 5 10 of 40 tasks</title></circle>
+<circle cx="151.1" cy="313.7" r="51.4" class="pool h-H7"><title>H7-time1200 time budget · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.443, cost $0.0077/trial, pass@5 22 of 40 tasks, solved in all 5 13 of 40 tasks</title></circle>
+<circle cx="274.2" cy="313.3" r="46.5" class="pool h-H0"><title>H0-time2400 stock terminus-2 · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.459, cost $0.0117/trial, pass@5 22 of 40 tasks, solved in all 5 11 of 40 tasks</title></circle>
+<circle cx="375.2" cy="323.9" r="36.8" class="pool h-H0"><title>H0-time3600 stock terminus-2 · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.434, cost $0.0163/trial, pass@5 24 of 40 tasks, solved in all 5 8 of 40 tasks</title></circle>
+<circle cx="150.4" cy="367.0" r="30.6" class="pool h-H0"><title>H0-time1200 stock terminus-2 · qwen3.8-flash-next · all 5 attempts (200 trials): mean reward 0.366, cost $0.0077/trial, pass@5 20 of 40 tasks, solved in all 5 8 of 40 tasks</title></circle>
+<path d="M210.8,307.9 H218.8 M214.8,303.9 V311.9" class="h-H0" style="fill:none;stroke-width:1.6"/>
+<path d="M224.6,305.7 H232.6 M228.6,301.7 V309.7" class="h-H7" style="fill:none;stroke-width:1.6"/>
+<path d="M272.4,310.9 H280.4 M276.4,306.9 V314.9" class="h-H0" style="fill:none;stroke-width:1.6"/>
+<path d="M267.5,262.3 H275.5 M271.5,258.3 V266.3" class="h-H7" style="fill:none;stroke-width:1.6"/>
+<path d="M339.4,242.5 H347.4 M343.4,238.5 V246.5" class="h-H7" style="fill:none;stroke-width:1.6"/>
+<path d="M371.1,326.1 H379.1 M375.1,322.1 V330.1" class="h-H0" style="fill:none;stroke-width:1.6"/>
+<path d="M146.2,320.6 H154.2 M150.2,316.6 V324.6" class="h-H7" style="fill:none;stroke-width:1.6"/>
+<path d="M145.8,367.2 H153.8 M149.8,363.2 V371.2" class="h-H0" style="fill:none;stroke-width:1.6"/>
+<path d="M589.9,265.0 H597.9 M593.9,261.0 V269.0" class="h-H0" style="fill:none;stroke-width:1.6"/>
+<circle cx="237.4" cy="327.5" r="4.5" class="mark h-H0"><title>H0-time1800 · qwen3.8-flash-next · attempt 1: mean reward 0.431, cost $0.0103/trial</title></circle>
+<circle cx="219.6" cy="320.2" r="4.5" class="mark h-H0"><title>H0-time1800 · qwen3.8-flash-next · attempt 2: mean reward 0.443, cost $0.0097/trial</title></circle>
+<circle cx="228.4" cy="274.3" r="4.5" class="mark h-H0"><title>H0-time1800 · qwen3.8-flash-next · attempt 3: mean reward 0.519, cost $0.0100/trial</title></circle>
+<circle cx="154.5" cy="328.2" r="4.5" class="mark h-H0"><title>H0-time1800 · qwen3.8-flash-next · attempt 4: mean reward 0.430, cost $0.0078/trial</title></circle>
+<circle cx="227.0" cy="289.5" r="4.5" class="mark h-H0"><title>H0-time1800 · qwen3.8-flash-next · attempt 5: mean reward 0.494, cost $0.0100/trial</title></circle>
+<circle cx="228.3" cy="284.4" r="4.5" class="mark h-H7"><title>H7-time1800 · qwen3.8-flash-next · attempt 1: mean reward 0.502, cost $0.0100/trial</title></circle>
+<circle cx="238.5" cy="380.8" r="4.5" class="mark h-H7"><title>H7-time1800 · qwen3.8-flash-next · attempt 2: mean reward 0.344, cost $0.0104/trial</title></circle>
+<circle cx="243.6" cy="347.9" r="4.5" class="mark h-H7"><title>H7-time1800 · qwen3.8-flash-next · attempt 3: mean reward 0.398, cost $0.0105/trial</title></circle>
+<circle cx="205.6" cy="264.2" r="4.5" class="mark h-H7"><title>H7-time1800 · qwen3.8-flash-next · attempt 4: mean reward 0.535, cost $0.0093/trial</title></circle>
+<circle cx="225.5" cy="251.4" r="4.5" class="mark h-H7"><title>H7-time1800 · qwen3.8-flash-next · attempt 5: mean reward 0.556, cost $0.0099/trial</title></circle>
+<circle cx="313.1" cy="320.2" r="4.5" class="mark h-H0"><title>H0-time2400 · qwen3.8-flash-next · attempt 1: mean reward 0.443, cost $0.0133/trial</title></circle>
+<circle cx="262.1" cy="350.9" r="4.5" class="mark h-H0"><title>H0-time2400 · qwen3.8-flash-next · attempt 2: mean reward 0.393, cost $0.0112/trial</title></circle>
+<circle cx="253.9" cy="312.3" r="4.5" class="mark h-H0"><title>H0-time2400 · qwen3.8-flash-next · attempt 3: mean reward 0.456, cost $0.0109/trial</title></circle>
+<circle cx="268.4" cy="274.2" r="4.5" class="mark h-H0"><title>H0-time2400 · qwen3.8-flash-next · attempt 4: mean reward 0.519, cost $0.0114/trial</title></circle>
+<circle cx="280.7" cy="297.1" r="4.5" class="mark h-H0"><title>H0-time2400 · qwen3.8-flash-next · attempt 5: mean reward 0.481, cost $0.0119/trial</title></circle>
+<circle cx="250.3" cy="317.4" r="4.5" class="mark h-H7"><title>H7-time2400 · qwen3.8-flash-next · attempt 1: mean reward 0.448, cost $0.0108/trial</title></circle>
+<circle cx="308.6" cy="239.3" r="4.5" class="mark h-H7"><title>H7-time2400 · qwen3.8-flash-next · attempt 2: mean reward 0.576, cost $0.0131/trial</title></circle>
+<circle cx="306.7" cy="264.2" r="4.5" class="mark h-H7"><title>H7-time2400 · qwen3.8-flash-next · attempt 3: mean reward 0.535, cost $0.0130/trial</title></circle>
+<circle cx="211.3" cy="264.2" r="4.5" class="mark h-H7"><title>H7-time2400 · qwen3.8-flash-next · attempt 4: mean reward 0.535, cost $0.0095/trial</title></circle>
+<circle cx="269.8" cy="226.2" r="4.5" class="mark h-H7"><title>H7-time2400 · qwen3.8-flash-next · attempt 5: mean reward 0.598, cost $0.0115/trial</title></circle>
+<circle cx="334.9" cy="241.4" r="4.5" class="mark h-H7"><title>H7-time3600 · qwen3.8-flash-next · attempt 1: mean reward 0.573, cost $0.0143/trial</title></circle>
+<circle cx="344.4" cy="239.0" r="4.5" class="mark h-H7"><title>H7-time3600 · qwen3.8-flash-next · attempt 2: mean reward 0.577, cost $0.0147/trial</title></circle>
+<circle cx="347.1" cy="231.2" r="4.5" class="mark h-H7"><title>H7-time3600 · qwen3.8-flash-next · attempt 3: mean reward 0.590, cost $0.0148/trial</title></circle>
+<circle cx="324.7" cy="203.5" r="4.5" class="mark h-H7"><title>H7-time3600 · qwen3.8-flash-next · attempt 4: mean reward 0.635, cost $0.0138/trial</title></circle>
+<circle cx="364.5" cy="297.2" r="4.5" class="mark h-H7"><title>H7-time3600 · qwen3.8-flash-next · attempt 5: mean reward 0.481, cost $0.0157/trial</title></circle>
+<circle cx="388.2" cy="350.7" r="4.5" class="mark h-H0"><title>H0-time3600 · qwen3.8-flash-next · attempt 1: mean reward 0.393, cost $0.0170/trial</title></circle>
+<circle cx="375.4" cy="312.3" r="4.5" class="mark h-H0"><title>H0-time3600 · qwen3.8-flash-next · attempt 2: mean reward 0.456, cost $0.0163/trial</title></circle>
+<circle cx="379.9" cy="335.1" r="4.5" class="mark h-H0"><title>H0-time3600 · qwen3.8-flash-next · attempt 3: mean reward 0.419, cost $0.0166/trial</title></circle>
+<circle cx="369.2" cy="335.1" r="4.5" class="mark h-H0"><title>H0-time3600 · qwen3.8-flash-next · attempt 4: mean reward 0.419, cost $0.0160/trial</title></circle>
+<circle cx="362.2" cy="297.1" r="4.5" class="mark h-H0"><title>H0-time3600 · qwen3.8-flash-next · attempt 5: mean reward 0.481, cost $0.0156/trial</title></circle>
+<circle cx="147.9" cy="325.1" r="4.5" class="mark h-H7"><title>H7-time1200 · qwen3.8-flash-next · attempt 1: mean reward 0.435, cost $0.0077/trial</title></circle>
+<circle cx="136.4" cy="271.8" r="4.5" class="mark h-H7"><title>H7-time1200 · qwen3.8-flash-next · attempt 2: mean reward 0.523, cost $0.0074/trial</title></circle>
+<circle cx="165.7" cy="355.7" r="4.5" class="mark h-H7"><title>H7-time1200 · qwen3.8-flash-next · attempt 3: mean reward 0.385, cost $0.0081/trial</title></circle>
+<circle cx="150.0" cy="325.1" r="4.5" class="mark h-H7"><title>H7-time1200 · qwen3.8-flash-next · attempt 4: mean reward 0.435, cost $0.0077/trial</title></circle>
+<circle cx="150.4" cy="325.4" r="4.5" class="mark h-H7"><title>H7-time1200 · qwen3.8-flash-next · attempt 5: mean reward 0.435, cost $0.0077/trial</title></circle>
+<circle cx="131.2" cy="380.7" r="4.5" class="mark h-H0"><title>H0-time1200 · qwen3.8-flash-next · attempt 1: mean reward 0.344, cost $0.0072/trial</title></circle>
+<circle cx="155.8" cy="388.9" r="4.5" class="mark h-H0"><title>H0-time1200 · qwen3.8-flash-next · attempt 2: mean reward 0.330, cost $0.0079/trial</title></circle>
+<circle cx="152.7" cy="350.3" r="4.5" class="mark h-H0"><title>H0-time1200 · qwen3.8-flash-next · attempt 3: mean reward 0.394, cost $0.0078/trial</title></circle>
+<circle cx="133.3" cy="350.6" r="4.5" class="mark h-H0"><title>H0-time1200 · qwen3.8-flash-next · attempt 4: mean reward 0.393, cost $0.0073/trial</title></circle>
+<circle cx="173.9" cy="365.5" r="4.5" class="mark h-H0"><title>H0-time1200 · qwen3.8-flash-next · attempt 5: mean reward 0.369, cost $0.0084/trial</title></circle>
+<circle cx="608.4" cy="317.5" r="4.5" class="mark h-H0"><title>H0-time12000 · qwen3.8-flash-next · attempt 1: mean reward 0.448, cost $0.0353/trial</title></circle>
+<circle cx="606.6" cy="252.5" r="4.5" class="mark h-H0"><title>H0-time12000 · qwen3.8-flash-next · attempt 2: mean reward 0.555, cost $0.0351/trial</title></circle>
+<circle cx="547.0" cy="200.9" r="4.5" class="mark h-H0"><title>H0-time12000 · qwen3.8-flash-next · attempt 3: mean reward 0.639, cost $0.0288/trial</title></circle>
+<circle cx="607.7" cy="266.8" r="4.5" class="mark h-H0"><title>H0-time12000 · qwen3.8-flash-next · attempt 4: mean reward 0.531, cost $0.0353/trial</title></circle>
+<circle cx="595.3" cy="287.2" r="4.5" class="mark h-H0"><title>H0-time12000 · qwen3.8-flash-next · attempt 5: mean reward 0.498, cost $0.0338/trial</title></circle>
+<line x1="400.9" y1="236.7" x2="658.6" y2="174.0" style="stroke:var(--muted)"/><text x="664.6" y="175.0" class="t1" font-size="12" font-weight="500">H7-time3600 0.571</text><text x="664.6" y="189.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0147</text>
+<line x1="322.7" y1="257.9" x2="658.6" y2="208.0" style="stroke:var(--muted)"/><text x="664.6" y="209.0" class="t1" font-size="12" font-weight="500">H7-time2400 0.539</text><text x="664.6" y="223.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0116</text>
+<line x1="649.0" y1="244.0" x2="658.6" y2="242.0" style="stroke:var(--muted)"/><text x="664.6" y="243.0" class="t1" font-size="12" font-weight="500">H0-time12000 0.534</text><text x="664.6" y="257.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0337</text>
+<line x1="303.7" y1="309.4" x2="658.6" y2="276.0" style="stroke:var(--muted)"/><text x="664.6" y="277.0" class="t1" font-size="12" font-weight="500">H7-time1800 0.467</text><text x="664.6" y="291.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0100</text>
+<line x1="249.1" y1="307.5" x2="658.6" y2="310.0" style="stroke:var(--muted)"/><text x="664.6" y="311.0" class="t1" font-size="12" font-weight="500">H0-time1800 0.463</text><text x="664.6" y="325.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0096</text>
+<line x1="320.6" y1="317.0" x2="658.6" y2="344.0" style="stroke:var(--muted)"/><text x="664.6" y="345.0" class="t1" font-size="12" font-weight="500">H0-time2400 0.459</text><text x="664.6" y="359.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0117</text>
+<line x1="202.0" y1="320.2" x2="658.6" y2="378.0" style="stroke:var(--muted)"/><text x="664.6" y="379.0" class="t1" font-size="12" font-weight="500">H7-time1200 0.443</text><text x="664.6" y="393.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0077</text>
+<line x1="410.3" y1="334.8" x2="658.6" y2="412.0" style="stroke:var(--muted)"/><text x="664.6" y="413.0" class="t1" font-size="12" font-weight="500">H0-time3600 0.434</text><text x="664.6" y="427.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0163</text>
+<line x1="180.6" y1="371.7" x2="658.6" y2="446.0" style="stroke:var(--muted)"/><text x="664.6" y="447.0" class="t1" font-size="12" font-weight="500">H0-time1200 0.366</text><text x="664.6" y="461.0" class="t2" font-size="11">qwen3.8-flash-next · $0.0077</text>
+<text x="32" y="652" class="tm" font-size="10.5">Prices per 1M input / output / cache-read tokens: qwen3.8-flash-next $0.15 / $0.47 / $0.016. Hover any mark for its values.</text>
+</svg>

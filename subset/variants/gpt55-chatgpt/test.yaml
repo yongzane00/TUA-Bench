@@ -1,0 +1,35 @@
+# gpt55-chatgpt/test — generated from baseline.yaml by make_variant.py.
+# Do not hand-edit; regenerate instead. Changes vs baseline:
+#   n_attempts = 1
+#   datasets.0.task_names = [012-hide-na-budget-values, 061-insert-features-table, 003-rebuild-energy-model]
+#   agents.0.model_name = chatgpt/gpt-5.5
+#   agents.0.kwargs.api_base = null
+#   agents.0.kwargs.use_responses_api = true
+#   agents.0.kwargs.model_info.max_input_tokens = 272000
+#   agents.0.kwargs.model_info.max_output_tokens = 128000
+#   agents.0.kwargs.model_info.input_cost_per_token = 5e-06
+#   agents.0.kwargs.model_info.output_cost_per_token = 3e-05
+#
+#   harbor run -c subset/variants/gpt55-chatgpt/test.yaml -o jobs/gpt55-chatgpt/test
+n_attempts: 1
+n_concurrent_trials: 4
+datasets:
+- path: tasks
+  task_names:
+  - 012-hide-na-budget-values
+  - 061-insert-features-table
+  - 003-rebuild-energy-model
+agents:
+- name: terminus-2
+  model_name: chatgpt/gpt-5.5
+  kwargs:
+    api_base: null
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 272000
+      max_output_tokens: 128000
+      input_cost_per_token: 5e-06
+      output_cost_per_token: 3e-05
+    use_responses_api: true
