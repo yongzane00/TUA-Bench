@@ -410,8 +410,11 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
    turns 4437 vs 3650 of 17655); dropped (section "Turn forecast and wrap-up reserve").
 4. **A forecast that does not swing back up after the wrap-up notice.** Once the notice is out, show the turns that
    fit at the slowest of the recent turns (or drop the count), so short checking turns do not turn "1 turn fits"
-   into "9 turns fit" (seen in the Claude Code proxy run). Check on the finished wrap-up arm before changing it:
-   how often the count rises after the notice, and whether those trials overran.
+   into "9 turns fit" (seen in the Claude Code proxy run). Checked on the meter lines the H7 models saw
+   (`subset/tools/forecast_rebound.py`, 4 budgets): after the count first read 1 or 0 (median 182 s left), it read
+   3 or more again in 13 of 219 trials (5 of 219 if it used the longest of the last 3 turns), and those trials did
+   not time out more often (2 of 13, against 29 of 206 where it stayed low). Rare and with no sign of harm, so the
+   display stays as it is. The H7 runs had no wrap-up notice; recheck on the pilot's wrap-up arm when it has run.
 
 ## Versions
 
@@ -484,4 +487,5 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   (1.6 s late in 3 of 5 cuts); fixed in the package; the same fix is due in the Harbor agent after the ablation.
   v13: the proxy handles the Anthropic messages format; Harbor's Claude Code agent ran unchanged through it inside
   the task container (cut at 300.0 s, reward 1). The model sent 7 more replies after the wrap-up notice
-  while the turn count rose from 1 to 9; logged as idea 4.
+  while the turn count rose from 1 to 9; logged as idea 4, then checked on the H7 runs: such a rise happened in 13 of
+  219 trials, with no more timeouts; no change.
