@@ -399,6 +399,12 @@ model then sent 7 more replies (the last one cut at the deadline). The turn fore
 "about 9 turns fit" at 219 s, after three short turns (7 to 11 s) pulled the 3-turn mean down. A model reading
 "9 turns fit" right after a wrap-up notice gets mixed signals. Idea 4 below.
 
+Since v16 a launcher (`python -m time_budget.run ... -- <agent command>`) runs a command-line agent behind the
+proxy and, if the agent is still running a grace period after the deadline, stops its whole process group
+(SIGINT, SIGTERM, SIGKILL). Live: a 60 s command started by an unchanged openai-SDK agent was stopped at 45.9 s on a
+40 s budget with 5 s grace, its child process with it. This covers the proxy's main gap for agents run as local
+processes; agents in containers (Harbor's installed agents) still finish their running command first.
+
 What the proxy cannot do: it sees model calls only, so tool calls are timed inside the turn, not one by one, and it
 cannot stop a command the agent is running. An agent that raises on an error needs the stop reply in its own answer
 format: Harbor skips grading when terminus-2 raises anything but a timeout, so the stop reply there is a
@@ -470,6 +476,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | v13 | harbor | `3cb6ddda` | The proxy also edits the Anthropic messages format: Claude Code (Harbor's installed agent, unchanged) ran through it in the task container on qwen3.8, cut at 300.0 s, reward 1. 35 of 35 tests |
 | v14 | harbor | `5bae9619` | Proxy `--track-conversations`: requests without a run id are sorted into runs by the history they resend, so concurrent trials that share one base URL keep separate clocks. 37 of 37 tests; live check passed (2 concurrent Claude Code trials on one URL, separate clocks) |
 | v15 | harbor | `8e401e5f` | The proxy also edits the OpenAI responses format (Codex, OpenAI Agents SDK), including runs that chain on the server by `previous_response_id`. 40 of 40 tests; live check with the openai SDK (tool call whole, cut at 6.0 s, closing event parsed) |
+| v16 | harbor | `9a84f839` | Launcher `python -m time_budget.run ... -- <agent command>`: proxy + agent in one command; stops the agent's process group if it runs past the deadline plus a grace period (the one thing the proxy cannot do). 43 of 43 tests; live check: a 60 s command stopped at 45.9 s on a 40 s budget with 5 s grace |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -533,3 +540,4 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 - 2026-11-12 01:40: the gate has waited 15.5 h. Measured what each start rule costs (section "Quiet-start gate"):
   at most 2 other requests would have opened 197 times in 7 days (median wait 0.6 h) against 23 for the current
   rule (12.6 h); put to the user as a recommendation.
+- 2026-11-12 02:10: no answer yet; the gate keeps the current rule. v16: the launcher, checked live.
