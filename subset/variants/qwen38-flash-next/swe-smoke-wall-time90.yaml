@@ -1,0 +1,43 @@
+# qwen38-flash-next/swe-smoke-wall-time90 — generated from baseline.yaml by make_variant.py.
+# Do not hand-edit; regenerate instead. Changes vs baseline:
+#   n_attempts = 3
+#   n_concurrent_trials = 1
+#   agents.0.name = null
+#   agents.0.kwargs.api_base = http://<qwen38-vllm-host-2>:8000/v1
+#   agents.0.import_path = harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7
+#   agents.0.kwargs.time_budget_sec = 90
+#   agents.0.kwargs.hard_deadline = true
+#   agents.0.kwargs.clock = wall
+#   agents.0.kwargs.save_diff_of = /testbed
+#   agents.0.kwargs.interrupt_at_stop = true
+#   agents.0.kwargs.report_request = true
+#   datasets.0.path = ../datasets/swe-bench-verified
+#   datasets.0.task_names = [django__django-7530]
+#
+#   harbor run -c subset/variants/qwen38-flash-next/swe-smoke-wall-time90.yaml -o jobs/qwen38-flash-next/swe-smoke-wall-time90
+n_attempts: 3
+n_concurrent_trials: 1
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-7530
+agents:
+- name: null
+  model_name: openai/qwen3.8-flash-next
+  kwargs:
+    api_base: http://<qwen38-vllm-host-2>:8000/v1
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 262144
+      max_output_tokens: 32768
+      input_cost_per_token: 1.5e-07
+      output_cost_per_token: 4.7e-07
+    time_budget_sec: 90
+    hard_deadline: true
+    clock: wall
+    save_diff_of: /testbed
+    interrupt_at_stop: true
+    report_request: true
+  import_path: harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7

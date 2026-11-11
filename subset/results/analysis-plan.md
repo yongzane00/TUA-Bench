@@ -117,3 +117,9 @@ affected trials are listed; they are not dropped.
   (d) to batch 2, from the plan's week-4 condition (p8). Batch 1 is unchanged.
 - 2026-11-12, before any trial of it: batch 4 (second harness through the budget proxy) added. Batches 1 to 3 are
   unchanged.
+- 2026-11-12, before any trial of batches 2 and 3: the hard deadline now waits for a model reply or a command on the
+  budget's own real-time clock, re-read every 0.5 s (Harbor fork `63217a11`). Before, one asyncio timeout counted
+  the event loop's clock, which runs slow under WSL, so cuts came late: on a 90 s smoke task, work lateness 2.0 to
+  4.1 s before and 0.2 to 0.5 s after (3 trials each). The configs do not change, and every arm of batches 2 and 3
+  runs the new code. Batch 1 does not use the hard deadline and runs on the earlier code: the copy of the agent it
+  imports is updated only after it ends.

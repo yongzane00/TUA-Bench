@@ -9,7 +9,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 |---|---|---|
 | I0-I3 feedback ablation, 40 tasks x 4 arms x 3 attempts = 480 trials (p6); frozen analysis plan with rounds 4-5 | `feedback` levels in the agent (v1); 4 configs; arms run side by side, 1 trial each; 3 rounds, each started only when the server is quiet | Waiting for a quiet server (tmux `abl38`, gate log `~/work/abl38-gate.log`) |
 | Finalize control "P" with a reserve (p4) | `finalize_reserve_sec` (v2): one wrap-up notice when time left <= recent turn length + reserve | Code and tests done; run after the ablation |
-| Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits | Live check passed: 75 s budget, stopped at 77.0 s with 1 reply cut (smoke run `swe-smoke-wrap30-time75`) |
+| Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits; v18 makes both waits follow the real-time clock | Live check with the pilot settings at 90 s (`swe-smoke-wall-time90`): work lateness 0.2 to 0.5 s, delivery lateness 1.2 to 2.7 s (3 of 3 trials); before v18, 2.0 to 4.1 s and 3.4 to 5.6 s. v18 is in the branch (Windows copy); the WSL copy gets it when the ablation ends |
 | Latency intervention, +5 s and +20 s per reply (p5) | `extra_reply_delay_sec` (v2); 4 configs `swe-dev-{hidden,full}-delay{5,20}-time900-rounds3` (the pilot configs plus the delay); batch 3 in the frozen analysis plan with its decision rule; `ablation_report.py --did` for the change in the gap | Ready; runs after the pilot batch (batch 2), whose hidden and full arms are the 0 s reference |
 | H1: the clock helps tasks that can be done but run out of time (p5) | Classes from other base runs; gap by class (below) | First result: supported at 2400 s |
 | H2: feedback brings the deliverable earlier (p5) | First `mark_task_complete` time from trajectories | Not supported: the clock delays the first "done" and adds more just before the deadline (below) |
@@ -421,12 +421,25 @@ format: Harbor skips grading when terminus-2 raises anything but a timeout, so t
    cause (not confirmed) is a stream cut inside a tool call, which leaves the agent half a tool call to run.
    Tool-call pieces are now held until the reply is complete; the 3 later runs ended cleanly.
 
-**The Harbor agent has the same clock problem (to fix before pilot batch 2).** `budget_meter.py:457` cuts a reply
-with `asyncio.wait_for(..., timeout=left)`, so with `clock: wall` the cut is late by the drift: up to about 8 of
-every 100 s still left when the reply started. The earlier live checks fit this (77.0 s on a 75 s budget; 21.7 s on
-20 s). The ablation arms do not use the hard deadline, but they import this file, so it stays unchanged until the
-ablation ends. Then the same slicing goes in (as part of moving the agent onto the shared core), with a change entry
-in the analysis plan, before the pilot batch, whose lateness target (P95 within 5 s) depends on it.
+**The Harbor agent had the same clock problem; fixed in v18 (2026-11-12).** `budget_meter.py` cut a reply with
+`asyncio.wait_for(..., timeout=left)`, so with `clock: wall` the cut was late by the drift during the reply. The
+"77.0 s on a 75 s budget" first given here as evidence was not: that run used the monotonic clock, and its 2.0 s
+included the diff saved after the cut (Harbor's own timestamps read 78.6 s). Clean measurement, the same task with
+the pilot settings (90 s, real-time clock, hard deadline, Ctrl-C at the stop, saved diff, report request), 3 trials
+on each code, reward 1 in 6 of 6:
+
+| Code | Job | Cuts | Work lateness (s) | Delivery lateness (s) |
+|---|---|---|---|---|
+| Before v18 | `swe-smoke-wall-time90/2026-11-12__05-36-10` | 3 replies | 2.0, 4.1, 4.0 | 3.4, 5.6, 5.6 |
+| v18 | `swe-smoke-wall-time90/2026-11-12__05-26-14` | 1 reply, 2 command waits | 0.5, 0.2, 0.2 | 2.7, 1.2, 2.7 |
+
+Work lateness is `stopped_at_sec` - 90; delivery lateness is `elapsed_sec` - 90, which adds the Ctrl-C and the
+saved diff (1.0 to 2.6 s) and equals Harbor's own agent time to 0.1 s in all 6 trials. Two of the three old-code
+trials would miss the 5 s target. In v18 both waits re-read the budget clock every 0.5 s, as the package does. In 2 of
+3 v18 trials a test command's wait, already shortened to the time left, still ran past the deadline (sending the
+keys takes time too) and the new check ended it. The v18 run used the Windows copy's code through `PYTHONPATH`; the
+WSL copy, which the ablation imports, stays at the old code until the ablation ends (its arms do not use the hard
+deadline). Moving the agent onto the shared core is still to do.
 
 ## Ideas to test (new, beyond the plan)
 
@@ -478,6 +491,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | v15 | harbor | `8e401e5f` | The proxy also edits the OpenAI responses format (Codex, OpenAI Agents SDK), including runs that chain on the server by `previous_response_id`. 40 of 40 tests; live check with the openai SDK (tool call whole, cut at 6.0 s, closing event parsed) |
 | v16 | harbor | `9a84f839` | Launcher `python -m time_budget.run ... -- <agent command>`: proxy + agent in one command; stops the agent's process group if it runs past the deadline plus a grace period (the one thing the proxy cannot do). 43 of 43 tests; live check: a 60 s command stopped at 45.9 s on a 40 s budget with 5 s grace |
 | v17 | harbor | `8f2ba7a1` | The proxy records each run's first user message (`first_user`) on its first request, so a run can be matched to its task. TUA-Bench `subset/tools/proxy_report.py` joins a proxy event log with the Harbor trials (matches, close calls, trials stopped by time, lateness after the deadline, replies); on the two Claude Code smoke jobs it matched 3 of 3 trials, lateness 0.5 s and 0.2 s. 43 of 43 tests |
+| v18 | harbor | `63217a11` | The Harbor agent's hard deadline waits for a reply or a command on the budget clock, re-read every 0.5 s, instead of one asyncio timeout on the event loop's clock (late under WSL with `clock: wall`). Live: work lateness 0.2 to 0.5 s, against 2.0 to 4.1 s before (3 trials each at 90 s). 35 of 35 budget tests, 64 of 64 terminus-2 tests. Not yet in the WSL copy (the ablation imports it) |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -490,6 +504,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | `smoke` + `tbproxy` | Stock terminus-2 through the budget proxy: `swe-smoke-proxy-stock-time300/2026-11-11__22-00-45`, `swe-smoke-proxy-stock-time90/2026-11-11__22-07-49` (1 trial each; proxy event logs in `~/work/proxy-smoke/`) | Done: reward 1 in both |
 | `smoke` + `tbproxy` | Harbor's claude-code agent through the proxy: `smoke-proxy-claude-code/2026-11-11__23-01-37` (1 trial); `2026-11-11__22-49-37` was stopped (wrong proxy address) and is not used | Done: reward 1 |
 | `smoke` + `tbproxy` | 2 Claude Code trials at once through one proxy URL: `smoke-proxy-claude-code/2026-11-12__00-18-33` | Done: separate clocks, reward 1 in both |
+| `smoke` | Pilot settings at 90 s, 3 trials each: `swe-smoke-wall-time90/2026-11-12__05-26-14` (v18 code via `PYTHONPATH` to the Windows copy), `2026-11-12__05-36-10` (the WSL copy's code, before v18) | Done: reward 1 in 6 of 6; lateness in the clock section |
 
 ## Log
 
@@ -555,3 +570,8 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   Code's own cost field, which prices the unknown model at Anthropic rates ($0.65 per solved on qwen3.8, meaningless),
   and "ended by time" reads the Harbor agent's stop flag; batch 4 takes trials stopped by time from
   `proxy_report.py`.
+- 2026-11-12 05:50: the gate still waits (1 to 4 requests from others through the night). v18: the Harbor agent's
+  deadline fix, made in the Windows copy only, so the ablation's code stays as it is. Checked live with the pilot
+  settings at 90 s against the old code on the same task (3 trials each): work lateness 0.2 to 0.5 s against 2.0 to
+  4.1 s. The "77.0 s on 75 s" cited earlier as evidence of the drift was corrected: it was a monotonic-clock run whose
+  lateness included the saved diff. Change entry added to the analysis plan before any trial of batches 2 and 3.
