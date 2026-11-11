@@ -1,0 +1,24 @@
+# Week-1 reproducibility check (plan p2 and p11): Harbor's oracle agent applies each task's reference patch and
+# runs its tests, with no model call. A task counts as reproducible when both attempts give reward 1.
+# The 10 tasks are dev tasks 11 to 20 in pilot/tasks.md (oracle-dev-rest.yaml has the first 10). Dataset: harbor datasets download
+# swe-bench/swe-bench-verified -o ~/work/datasets (task folders are read from ../datasets, next to the repo).
+#
+#   cd ~/work/TUA-Bench
+#   uv run --no-sync harbor run -c pilot/configs/oracle-dev-rest.yaml -o <TUA-Bench on C:>/jobs/pilot/oracle-dev-rest --yes
+n_attempts: 2
+n_concurrent_trials: 2
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-11099
+  - django__django-11119
+  - django__django-11133
+  - django__django-11141
+  - django__django-11149
+  - django__django-11163
+  - django__django-11179
+  - django__django-11206
+  - django__django-11211
+  - django__django-11239
+agents:
+- name: oracle
