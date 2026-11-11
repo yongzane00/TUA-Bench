@@ -17,7 +17,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Cost per qualified delivery, empty-handed timeouts (p7) | same | Done for both models |
 | Week-1 items for the next group meeting (p11): task contract, 10 reproducible tasks, data split, budget and logging spec, first configs | `pilot/README.md` (contract, budget, logging), `pilot/tasks.md` (split), `pilot/configs/oracle-week1.yaml` | Contract, split, spec and configs written; oracle check of the 10 tasks running (tmux `pilot`) |
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | `subset/tools/event_log.py`: one JSON line per model call, command batch, stop and grading | Done; tested on a pilot smoke trial and a TUA trial |
-| Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; not yet used on a live model |
+| Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; live check on qwen3.8 passed (wrap-up notice, cut at 20.0 s; the server drops a cancelled reply within 0.5 s) |
 | Hosted API replication (p9) | | Needs money: ask the user |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
 | Held-out 80 TUA tasks, full 120 (p6) | | After the configuration is locked |
@@ -164,6 +164,71 @@ clock per trial, so its `budget_left_s` matches the stop (checked: a 2400 s tria
 Their "clamp" hook (cut a command's time limit to the deadline) is the same idea as the command-wait cut in
 `hard_deadline`; their RL policies fill time with rejected commands, a failure mode to check in our traces too.
 
+## Filler actions near the deadline (checked 2026-11-11)
+
+On the Clock's trained agents filled spare time with repeated actions. The check in the finished qwen3.8 runs: every
+agent step in the last 300 s of the budget (by the trajectory's timestamps), 200 trials per arm. Wait-only: every
+command in the step is empty, `sleep N`, `wait`, `true`, `:` or a one-word `echo`. Repeated: the same commands as an
+earlier step of the same trial.
+
+| Budget (s) | Arm | Steps in the last 300 s | Wait-only | Repeated | Declared complete |
+|---|---|---|---|---|---|
+| 1200 | hidden | 383 | 32 of 383 | 22 of 383 | 26 of 383 |
+| 1200 | shown | 373 | 27 of 373 | 20 of 373 | 108 of 373 |
+| 1800 | hidden | 321 | 35 of 321 | 32 of 321 | 18 of 321 |
+| 1800 | shown | 204 | 9 of 204 | 9 of 204 | 66 of 204 |
+| 2400 | hidden | 229 | 25 of 229 | 23 of 229 | 11 of 229 |
+| 2400 | shown | 162 | 11 of 162 | 9 of 162 | 50 of 162 |
+| 3600 | hidden | 188 | 8 of 188 | 7 of 188 | 13 of 188 |
+| 3600 | shown | 149 | 4 of 149 | 3 of 149 | 43 of 149 |
+
+No filling: at every budget the shown arm has fewer wait-only and repeated steps near the deadline than the hidden
+arm. It instead uses the last minutes to declare the task complete (50 of 162 steps at 2400 s vs 11 of 229), which
+is the same late declaration seen in H2. Earlier in the trials the arms are close (2400 s: wait-only 139 of 2910
+hidden, 106 of 2854 shown). `subset/tools/filler_check.py` makes this table (`--plan-runs qwen38`) and checks the
+ablation and pilot runs the same way (`<budget> <label>=<run_dir>,...`).
+
+## Does the clock help more when the model is slow? (natural speed, 2026-11-11)
+
+A free first look at the plan's latency question (p5): server load makes some trials slower than others, and a slow
+trial has less model time inside the same budget. `subset/tools/speed_dose.py` takes each trial's speed (output
+tokens per second of waiting for the model) relative to the same task's mean over all qwen3.8 runs (z, in log units),
+and fits solved = task fixed effects + shown + z + shown x z, bootstrap over tasks.
+
+| Budget (s) | Mean z, hidden / shown | Clock gap on slow trials (z = -0.2), of 200 | On fast trials (z = +0.2) | Slow - fast |
+|---|---|---|---|---|
+| 1200 | -0.011 / -0.003 | +13 (-6 to +32) | +11 (-9 to +34) | +2 (-28 to +31) |
+| 1800 | +0.045 / +0.015 | -6 (-42 to +22) | +17 (-0 to +38) | -23 (-78 to +18) |
+| 2400 | +0.012 / -0.001 | +13 (-10 to +36) | +11 (-12 to +36) | +2 (-39 to +42) |
+| 3600 | +0.017 / -0.040 | +6 (-11 to +21) | +34 (+12 to +70) | -28 (-74 to -2) |
+| pooled | | +9 (-3 to +19) | +15 (+5 to +29) | -6 (-30 to +9) |
+
+- The arms met the same server speed at 1200 to 2400 s (mean z within 0.03). At 3600 s the shown run was slower
+  (median 16.2 vs 17.2 tok/s), which works against the shown arm.
+- No sign that the clock helps more on slow trials: the pooled gap is not larger on slow trials (-6, CI -30 to +9);
+  the one interval that excludes 0 (3600 s) points the other way and comes from the run with unequal speed.
+- The test is weak, because natural variation is small. Within a task, speed varies by about +-10% (P10 -7%, P90
+  +12%; 93 of 1600 trials are more than 20% off their task's usual speed). Waiting for the model is 80 to 83 of every
+  100 seconds of agent time (median over 160 trials at 2400 s), and the median reply takes 33 s (P25 17 s, P75 72 s).
+  The plan's +20 s per reply adds about 60% to a median reply, about six times the natural spread. So the injected
+  delay arm is still needed; this check only says the effect does not show up within the natural range.
+
+## LangChain adapter on a live model (2026-11-11)
+
+`packages/time-budget/examples/live_smoke.py` (harbor fork) ran `TimeBudgetMiddleware` in a real `create_agent` loop
+on qwen3.8-flash-next with one tool and a small coding task:
+
+| Budget | Setting | Result |
+|---|---|---|
+| 240 s | effort low | Answer after 26.4 s (2 replies, 1 tool call); no stop |
+| 90 s | wrap-up reserve 60 s, effort medium | First reply took 47.9 s on the busy server; wrap-up notice at 48.2 s (41.8 s left); answer at 65.9 s |
+| 20 s | effort xhigh | The first reply was cancelled at 20.0 s; stop `time` |
+
+No meter line stayed in the message history in any run. **Does the server stop a cancelled reply?** Three long
+non-streaming requests raised the server's running count from 3 to 6; after the client cancelled them at 8.3 s it
+read 3 again at 8.8 s and stayed there. So on vLLM the hard deadline also frees the shared server instead of leaving
+an orphaned generation. Hosted APIs were not checked and may still bill the cut tokens.
+
 ## Ideas to test (new, beyond the plan)
 
 1. **Effort that follows the clock.** About four fifths of the time goes to waiting for the model. Near the
@@ -173,7 +238,8 @@ Their "clamp" hook (cut a command's time limit to the deadline) is the same idea
    16 s vs 25 s per reply). To run as its own arm after the wrap-up comparison.
 2. **Natural latency experiment.** Server load changes the model's speed from trial to trial. Tagging each trial
    with its measured tokens per second (from the agent's own request times) and the vllmtop load gives a free
-   dose-response check of H1 before paying for injected delays.
+   dose-response check of H1 before paying for injected delays. Done (section above): no dose-response within the
+   natural +-10% speed range, which is too narrow to replace the injected +5 s / +20 s arms.
 3. **Turn-length forecast by command type** (plan p4): keep durations per command class (install, build, test,
    GUI action) instead of the mean of the last 3 turns.
 
@@ -191,6 +257,7 @@ Their "clamp" hook (cut a command's time limit to the deadline) is the same idea
 | v5 | harbor | `dfa93a21` | `clock: wall`: budget in real time. 24 of 24 tests |
 | v5 | TUA-Bench | `e73285c` | `subset/tools/event_log.py`; oracle config for dev tasks 11 to 20 |
 | v6 | harbor | `c61156e9` | `packages/time-budget`: core + LangChain middleware. 11 of 11 tests |
+| v6 | harbor | `2749ca37` | `packages/time-budget/examples/live_smoke.py`; live check and server-side cancel check in the READMEs |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -211,3 +278,7 @@ Their "clamp" hook (cut a command's time limit to the deadline) is the same idea
   Later: nop check done, two broken tasks excluded and replaced; clock drift measured and `clock: wall` added (v5);
   event log converter; pilot batch configs ready. Run order on the server: ablation first (plan week 3), then the
   pilot batch (week 4), each in quiet-start rounds, never both at once.
+- 2026-11-11 afternoon: still no quiet 10 minutes (the last was 2026-11-10 19:03; 13 of the last 14 days had at
+  least one). Checks on finished runs while waiting: no filler actions near the deadline; no dose-response of the
+  clock gap to natural speed (range too narrow to replace the latency arm). LangChain adapter checked live; vLLM
+  drops cancelled replies.
