@@ -12,7 +12,9 @@ The rule is fixed here, before any agent runs, so the split cannot follow the re
   5. Sort by issue date. Dev = the 20 oldest. Held-out = the 40 newest that change none of the files a dev task
      changes, so the two sets differ in time and in the code they touch, and no ticket can be in both.
      (Excluding whole families left only 18 held-out tasks: Django's fixes cluster in a few packages.)
-The first 10 dev tasks are the "10 reproducible tasks" for week 1 (checked with Harbor's oracle agent).
+  6. Skip tasks listed in pilot/excluded.md: they failed the reproducibility check (check_tasks.py: the
+     reference fix must score 1 and no change must score 0). The next candidates take their places.
+The first 10 dev tasks are the "10 reproducible tasks" for week 1.
 """
 import json
 import pathlib
@@ -20,8 +22,12 @@ import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
+excluded_md = pathlib.Path(__file__).resolve().parent / "excluded.md"
+excluded = set(re.findall(r"^\| `([^`]+)`", excluded_md.read_text(), flags=re.M)) if excluded_md.exists() else set()
 rows = []
 for d in sorted(root.iterdir()):
+    if d.name in excluded:
+        continue
     cfg = d / "tests" / "config.json"
     if not cfg.exists():
         continue

@@ -1,0 +1,15 @@
+# Reproducibility check (oracle must score 1, nop must score 0) for the dev tasks that replaced the two excluded
+# ones (pilot/excluded.md). Both agents in one job.
+#
+#   cd ~/work/TUA-Bench
+#   uv run --no-sync harbor run -c pilot/configs/check-dev-added.yaml -o <TUA-Bench on C:>/jobs/pilot/check-dev-added --yes
+n_attempts: 2
+n_concurrent_trials: 2
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-11265
+  - django__django-11276
+agents:
+- name: oracle
+- name: nop
