@@ -362,7 +362,8 @@ Live checks on qwen3.8-flash-next:
 The event log records the note each request added (for example `[Time 87 of 90 s, 3 s left | last reply 11 s at
 14 tok/s | about 0 turns fit]`), because the agent's own trajectory never shows what the proxy added.
 
-Since v13 the proxy also edits the Anthropic messages format (`/v1/messages`), so Claude Code and other Anthropic
+Since v15 it also edits the OpenAI responses format (`/v1/responses`, the default of Codex and the OpenAI Agents
+SDK), so the three request formats that agent harnesses use are covered. Since v13 the proxy also edits the Anthropic messages format (`/v1/messages`), so Claude Code and other Anthropic
 clients take it through `ANTHROPIC_BASE_URL`; vLLM serves that format too. Claude Code runs inside the task
 container: with Docker Desktop the container reaches a proxy on WSL's 127.0.0.1 as `host.docker.internal`, but not
 at the WSL eth0 address. The first attempt used that address, and Claude Code retried with no answer until it was
@@ -443,6 +444,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | v12 | harbor | `efe819e2` | `time_budget.proxy`: the budget for an unchanged agent through its model base URL (meter per request, reply cut at the deadline, stop reply in the agent's own format, tool-call pieces held until a reply completes); `TimeBudget.run` re-reads the budget clock every 0.5 s instead of one asyncio timeout on the monotonic clock. 32 of 32 tests; live checks with LangChain and stock terminus-2 |
 | v13 | harbor | `3cb6ddda` | The proxy also edits the Anthropic messages format: Claude Code (Harbor's installed agent, unchanged) ran through it in the task container on qwen3.8, cut at 300.0 s, reward 1. 35 of 35 tests |
 | v14 | harbor | `5bae9619` | Proxy `--track-conversations`: requests without a run id are sorted into runs by the history they resend, so concurrent trials that share one base URL keep separate clocks. 37 of 37 tests; live check passed (2 concurrent Claude Code trials on one URL, separate clocks) |
+| v15 | harbor | `8e401e5f` | The proxy also edits the OpenAI responses format (Codex, OpenAI Agents SDK), including runs that chain on the server by `previous_response_id`. 40 of 40 tests; live check with the openai SDK (tool call whole, cut at 6.0 s, closing event parsed) |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -501,3 +503,5 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   trials at once on one proxy URL kept separate clocks (`smoke-proxy-claude-code/2026-11-12__00-18-33`).
   Batch 4 added to the analysis plan before any of its trials: the same clock through the proxy in a second harness
   (Claude Code), hidden vs full on the 20 dev tasks, decision on the full - hidden gap; configs load in Harbor.
+- 2026-11-12 01:00: v15, the responses format in the proxy; checked live with the openai SDK while the server was
+  busy (3 requests from others).
