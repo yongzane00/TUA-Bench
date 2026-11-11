@@ -9,7 +9,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 |---|---|---|
 | I0-I3 feedback ablation, 40 tasks x 4 arms x 3 attempts = 480 trials (p6) | `feedback` levels in the agent (v1); 4 configs; arms run side by side, 1 trial each; 3 rounds, each started only when the server is quiet | Waiting for a quiet server (tmux `abl38`, gate log `~/work/abl38-gate.log`) |
 | Finalize control "P" with a reserve (p4) | `finalize_reserve_sec` (v2): one wrap-up notice when time left <= recent turn length + reserve | Code and tests done; run after the ablation |
-| Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits | Code and tests done; needs a live check |
+| Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits | Live check passed: 75 s budget, stopped at 77.0 s with 1 reply cut (smoke run `swe-smoke-wrap30-time75`) |
 | Latency intervention, +5 s and +20 s per reply (p5) | `extra_reply_delay_sec` (v2) | Code and tests done; run after P |
 | H1: the clock helps tasks that can be done but run out of time (p5) | Classes from other base runs; gap by class (below) | First result: supported at 2400 s |
 | H2: feedback brings the deliverable earlier (p5) | First `mark_task_complete` time from trajectories | Not supported: the clock delays the first "done" and adds more just before the deadline (below) |
@@ -107,11 +107,22 @@ minutes with no requests from anyone; trials can later be tagged with the load d
 | On the Clock, arXiv 2610.10833 (2026-10-07) | Timing information makes agents keep to the budget "without measurable loss in performance"; trained agents learn when to stop but fill extra time with repeated actions; agents do not turn extra time into better results | Here the clock raises quality at a fixed budget (+12 and +17 of 200 at 2400 and 3600 s, CIs above 0), and the shown arm at 3600 s beats the hidden arm at 12000 s (104 vs 95 of 200 for $9.09 vs $29.48): the "productive" side they call open |
 | Timely Machine, arXiv 2601.16486 (2026-01-23) | Tool latency separates time from tokens; the best model and strategy depend on latency; RL training (Timely-RL) | The latency intervention tests the same question without training |
 
+## Pilot task checks (week 1)
+
+A task is reproducible only when the oracle (reference fix) scores 1 and Harbor's nop agent (no change) scores 0
+(`pilot/check_tasks.py jobs/pilot`). The nop check was added after a smoke trial scored 1 on
+`django__django-7530` without changing any file: its one FAIL_TO_PASS test already passes on the untouched repo. So
+far `django__django-10097` also fails, the other way: the reference fix scores 0 (438 required tests, 475 s to grade).
+Both will be excluded and replaced by the next oldest candidates once the oracle and nop runs finish. Grading time so
+far: median 34 s; most tasks 22 to 34 s, two at 102 and 125 s.
+
 ## Ideas to test (new, beyond the plan)
 
 1. **Effort that follows the clock.** About four fifths of the time goes to waiting for the model. Near the
-   deadline the harness could lower `reasoning_effort` (or cap `max_tokens` to what fits in the time left) instead
-   of only telling the model. This changes the inference, not the prompt; compare with the wrap-up notice.
+   deadline the harness lowers `reasoning_effort` instead of only telling the model (v4, `late_effort`). This
+   changes the inference, not the prompt, so it also works in the hidden arm. Checked first that the server
+   honours it: the same coding question used 88 and 90 reasoning tokens at `low` vs 241 and 236 at `xhigh` (14 to
+   16 s vs 25 s per reply). To run as its own arm after the wrap-up comparison.
 2. **Natural latency experiment.** Server load changes the model's speed from trial to trial. Tagging each trial
    with its measured tokens per second (from the agent's own request times) and the vllmtop load gives a free
    dose-response check of H1 before paying for injected delays.
@@ -126,7 +137,10 @@ minutes with no requests from anyone; trials can later be tagged with the load d
 | v1 | TUA-Bench | `409ae90`, `55b16b4` | First ablation configs and launcher; server address fix; `.146` added to the local redact filter as `<qwen38-vllm-host-2>` |
 | v2 | harbor | `82c207e1` | `hard_deadline`, `finalize_reserve_sec`, `extra_reply_delay_sec` (all off by default). 17 of 17 unit tests pass |
 | v2 | TUA-Bench | `ca2bae1` | Ablation as 3 quiet-start rounds (`run_parallel.sh`, `run_gate.sh`, `run_one.sh`); `-rounds3` configs replace the `-attempt3` ones; `plan_metrics.py` |
-| v3 | TUA-Bench | this commit | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
+| v3 | harbor | `397eb68e`, `2c6683db` | `save_diff_of`: saves `git diff` and status of the deliverable at the stop. 20 of 20 tests |
+| v4 | harbor | `bb354b2b` | `late_effort`: lower reasoning effort near the deadline. 22 of 22 tests |
+| v4 | TUA-Bench | `ad0bbec` | `pilot/check_tasks.py`, nop config, two smoke configs, `subset/tools/ablation_report.py` |
+| v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
 ## Runs
 
@@ -139,4 +153,6 @@ minutes with no requests from anyone; trials can later be tagged with the load d
 
 - 2026-11-11: read the plan; made the branch; v1 and v2 written, tested and committed; delivery metrics, timeliness
   and H1 computed for qwen3.8; ablation set up as quiet-start rounds. qwen3.6 metrics, H2, speed check; pilot
-  folder with the week-1 items; oracle check started (no model calls).
+  folder with the week-1 items; oracle check started (no model calls). Smoke trials confirmed the hard deadline
+  and diff saving live; nop check added after a task passed with no change; late-effort setting added (v4). The
+  qwen3.8 server had 2 to 4 requests from other users running all morning, so ablation round 1 has not started.
