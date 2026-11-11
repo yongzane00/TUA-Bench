@@ -306,6 +306,23 @@ r'\A[\w.@+-]+\Z'), verified by manual check and by auth_tests.test_validators (2
 test added." The trajectory shows the claimed run ("Ran 23 tests ... OK" at step 12), so the claim checks out. It did
 not state what was unverified; the request asks for it, so a missing item is itself something the review records.
 
+## Tasks from a repo's history (plan p2; 2026-11-11)
+
+The plan's business task set is 60 historical fixes ("收集 60 个可运行的历史修复任务"), not new tickets, so a team with
+few new tickets can still build it from its git history. `pilot/mine_fixes.py` applies the SWE-bench recipe to any
+Python repo on GitHub: a candidate is a commit that changes source and test files and points to an issue (directly or
+through the squash-merged pull request); the task text is the issue report, never the fix; features, RFCs and
+breaking changes are skipped (labels or title); the environment is the repo at the fix's parent commit as a fresh git
+repo (the future fix is not in its history); grading resets the touched test files, applies the fix's test changes and
+runs them with pytest. For a company repo, the issue lookup would read the ticket system instead.
+
+First use: 8 tasks from marshmallow fixes since 2024 (e.g. issue #2936 "Update Email validator to support IDNs", #2249
+"`fields.Url` does not accept `file` URLs without host"), written to `~/work/datasets/mined-marshmallow`. **Not yet
+checked**: the reproducibility check (`pilot/configs/check-mined-marshmallow.yaml`, reference fix must score 1 and no
+change 0) runs the cloned project's code and tests in Docker, and the permission system blocked it; it waits for the
+user's go-ahead. Issue lookups are cached (`~/.cache/mine_fixes/`), since the unauthenticated GitHub API allows 60
+requests an hour.
+
 ## LangChain adapter on a live model (2026-11-11)
 
 `packages/time-budget/examples/live_smoke.py` (harbor fork) ran `TimeBudgetMiddleware` in a real `create_agent` loop
@@ -355,7 +372,7 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
 | v7 | harbor | `c41a5847` | `interrupt_at_stop`: Ctrl-C the terminal's running command at a budget stop and check it exited; one container call each for the check and the saved diff; `stopped_at_sec`. 30 of 30 tests |
 | v7 | TUA-Bench | `c03e843` | `pilot/selftest/` scripted-model self-test; `interrupt_at_stop` on in the seven pilot configs; analysis-plan change recorded |
 | v8 | harbor | `6382238d` | `report_request`: the contract's report asked for in every arm. 32 of 32 tests |
-| v8 | TUA-Bench | (this commit) | `report_request` on in the seven pilot configs; report check and condition (d) in the analysis plan; report in the event log; live check |
+| v8 | TUA-Bench | `f107f6e` | `report_request` on in the seven pilot configs; report check and condition (d) in the analysis plan; report in the event log; live check |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -389,3 +406,5 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
   concurrent scripted trials kept separate clocks.
   Code-repair report (v8): asked for in every pilot arm; live check on one task: report written, its test claim
   matches the trajectory, reward 1.
+  History miner (`pilot/mine_fixes.py`): 8 marshmallow tasks generated; their check waits for permission to
+  run external project code in Docker.

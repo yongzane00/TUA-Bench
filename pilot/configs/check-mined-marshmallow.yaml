@@ -1,0 +1,16 @@
+# Reproducibility check of tasks mined from a repo's history (pilot/mine_fixes.py), here marshmallow: the oracle
+# (the commit's own fix) must score 1 and the nop agent (no change) must score 0. No model call.
+#
+#   cd ~/work/TUA-Bench
+#   python3 pilot/mine_fixes.py ~/work/mine-demo/marshmallow marshmallow-code/marshmallow \
+#       ~/work/datasets/mined-marshmallow --since 2024-01-01 --max 8 --install "-e . simplejson"
+#   uv run --no-sync harbor run -c pilot/configs/check-mined-marshmallow.yaml \
+#       -o <TUA-Bench on C:>/jobs/mined/check-marshmallow --yes
+#   python3 pilot/check_tasks.py <TUA-Bench on C:>/jobs/mined
+n_attempts: 1
+n_concurrent_trials: 2
+datasets:
+- path: ../datasets/mined-marshmallow
+agents:
+- name: oracle
+- name: nop
