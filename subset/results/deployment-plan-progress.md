@@ -17,7 +17,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Cost per qualified delivery, empty-handed timeouts (p7) | same | Done for both models |
 | Week-1 items for the next group meeting (p11): task contract, 10 reproducible tasks, data split, budget and logging spec, first configs | `pilot/README.md` (contract, budget, logging), `pilot/tasks.md` (split), `pilot/configs/oracle-week1.yaml` | Contract, split, spec and configs written; oracle check of the 10 tasks running (tmux `pilot`) |
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | `subset/tools/event_log.py`: one JSON line per model call, command batch, stop and grading | Done; tested on a pilot smoke trial and a TUA trial |
-| Framework middleware + LangChain adapter (p3) | | Later |
+| Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; not yet used on a live model |
 | Hosted API replication (p9) | | Needs money: ask the user |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
 | Held-out 80 TUA tasks, full 120 (p6) | | After the configuration is locked |
@@ -113,7 +113,7 @@ A task is reproducible only when the oracle (reference fix) scores 1 and Harbor'
 (`pilot/check_tasks.py jobs/pilot`). The nop check was added after a smoke trial scored 1 on
 `django__django-7530` without changing any file: its one FAIL_TO_PASS test already passes on the untouched repo.
 `django__django-10097` fails the other way: the reference fix scores 0 (438 required tests, 475 s to grade). Of the
-first 20 dev tasks, 12 were confirmed and 6 were waiting for the oracle at 10:40; these two are the only failures.
+first 20 dev tasks, these two are the only failures; with the two replacements, all 20 dev tasks reproduce (`pilot/reproducibility.md`; grading time median 41 s, P90 84 s over 68 trials).
 Both are listed in `pilot/excluded.md`; the selection rule then took `django__django-11265` and `-11276` into dev
 (being checked) and moved 3 held-out tasks by the same file rule. Grading time over 44 trials: median 40 s, P90
 102 s, which supports the plan's 120 s wrap-up reserve (P90 rounded up to the next 30 s).
@@ -155,7 +155,8 @@ clock per trial, so its `budget_left_s` matches the stop (checked: a 2400 s tria
 | v4 | TUA-Bench | `ad0bbec` | `pilot/check_tasks.py`, nop config, two smoke configs, `subset/tools/ablation_report.py` |
 | v5 | harbor | `dfa93a21` | `clock: wall`: budget in real time. 24 of 24 tests |
 | v5 | TUA-Bench | `e73285c` | `subset/tools/event_log.py`; oracle config for dev tasks 11 to 20 |
-| v6 | TUA-Bench | `f5f9c4f` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
+| v6 | harbor | `c61156e9` | `packages/time-budget`: core + LangChain middleware. 11 of 11 tests |
+| v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
 ## Runs
