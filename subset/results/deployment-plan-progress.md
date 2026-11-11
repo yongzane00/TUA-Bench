@@ -18,7 +18,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Week-1 items for the next group meeting (p11): task contract, 10 reproducible tasks, data split, budget and logging spec, first configs | `pilot/README.md` (contract, budget, logging), `pilot/tasks.md` (split), `pilot/configs/oracle-week1.yaml` | Contract, split, spec and configs written; oracle check of the 10 tasks running (tmux `pilot`) |
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | `subset/tools/event_log.py`: one JSON line per model call, command batch, stop and grading | Done; tested on a pilot smoke trial and a TUA trial |
 | Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; live check on qwen3.8 passed (wrap-up notice, cut at 20.0 s; the server drops a cancelled reply within 0.5 s). Since v12 also a proxy for agents that cannot be changed: stock terminus-2 in Harbor ran through it with no code change (reward 1 at 300 s and at 90 s, cut at 90.0 s) |
-| Second harness (p3; the user's goal of one plugin for every harness) | Batch 4 in the frozen analysis plan: Harbor's claude-code agent (unchanged, version pinned) through the proxy, hidden vs full, 20 dev tasks x 3 rounds; configs `cc-dev-{hidden,full}-time900-rounds3`, launcher `subset/tools/run_cc_batch.sh`; checked live on 1 task (1 trial, and 2 at once on one URL) | Ready; runs after batch 3 |
+| Second harness (p3; the user's goal of one plugin for every harness) | Batch 4 in the frozen analysis plan: Harbor's claude-code agent (unchanged, version pinned) through the proxy, hidden vs full, 20 dev tasks x 3 rounds; configs `cc-dev-{hidden,full}-time900-rounds3`, launcher `subset/tools/run_cc_batch.sh`; checked live on 1 task (1 trial, and 2 at once on one URL). Since v19 a Bash command running at the deadline is ended by Claude Code itself (its timeout lowered to the time left, background tasks off; scripted self-tests) | Ready; runs after batch 3 |
 | Hosted API replication (p9) | | Needs money: ask the user |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
 | Held-out 80 TUA tasks, full 120 (p6) | | After the configuration is locked |
@@ -441,6 +441,36 @@ keys takes time too) and the new check ended it. The v18 run used the Windows co
 WSL copy, which the ablation imports, stays at the old code until the ablation ends (its arms do not use the hard
 deadline). Moving the agent onto the shared core is still to do.
 
+## Commands still running at the deadline under the proxy (plan p4, p11; 2026-11-12)
+
+The proxy sees model calls only, so a command Claude Code runs at the deadline used to run on until it ended or hit
+Claude Code's own timeout (120 s by default, up to 600 s if the model asks). Most shell tools take a timeout
+argument, so v19 lowers it: `--cap-tool-timeout Bash:timeout:ms:120000` hands each Bash call to Claude Code with a
+timeout no longer than the time left minus `--cap-margin`, and later requests carry the model's own value back (in a
+hidden arm the time left must not show in the model's own tool calls). What Claude Code does at the timeout was
+checked rather than assumed. In this session's own Claude Code (2.1.286), a timed-out command was moved to the
+background and kept running; a user report says `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` makes it end the command
+instead (exit 143); and Harbor's claude-code agent sets `FORCE_AUTO_BACKGROUND_TASKS=1` and `ENABLE_BACKGROUND_TASKS=1`.
+
+Self-tests with Harbor's claude-code agent 2.1.322 in the `django__django-7530` container and a scripted model
+(`pilot/selftest/scripted_messages.py`: its first answer is one Bash loop that appends the time to
+`/logs/agent/probe-ticks` every second for 90 s; no model server is used). Budget 40 s:
+
+| Job | Background tasks | Margin | Command | Claude Code |
+|---|---|---|---|---|
+| `jobs/pilot/selftest-cc-timeout/2026-11-12__06-09-02` | on (as Harbor runs it) | 0 s | "Moved to the background" at 40 s; ran all 90 ticks | Stop reply at 44.7 s; then waited for the command, sent 6 more requests (HTTP 400) and exited with an error at 100.8 s (`NonZeroAgentExitCodeError`, graded) |
+| `jobs/pilot/selftest-cc-timeout-nobg/2026-11-12__06-12-19` | off | 0 s | "Exit code 143, timed out after 39s"; 40 ticks | Stop reply at 44.5 s; clean exit at 46.5 s |
+| `jobs/pilot/selftest-cc-timeout-nobg/2026-11-12__06-17-13` | off | 3.5 s | Ended at its 36.5 s timeout, last tick at 38.1 s | Next request at 39.0 s (before the deadline; a real model's reply would be cut at 40.0 s); clean exit at 39.0 s |
+
+Without a margin the stop came 4.5 s late, all of it Claude Code's own: it starts a command about 2 s after the
+reply arrives, its timeout counts from there, and ending the command and sending the next request take about 1.5 s.
+Batch 4 now uses the cap with a 3.5 s margin and background tasks off in both arms (change entry in the analysis
+plan, before any of its trials). The same self-tests were the first live use of batch 4's way of passing the proxy
+address (the config's `env:`; the smoke runs used the shell environment): requests reached the proxy with the model
+name `qwen3.8-flash-next`. On that route Harbor does not set the model aliases for Claude Code's other model roles
+(`ANTHROPIC_DEFAULT_HAIKU_MODEL` and the rest), so the configs now set them to qwen3.8, as Harbor does on the shell
+route. A side request under a Claude model name would have reached vLLM, which serves only qwen3.8.
+
 ## Ideas to test (new, beyond the plan)
 
 1. **Effort that follows the clock.** About four fifths of the time goes to waiting for the model. Near the
@@ -492,6 +522,7 @@ deadline). Moving the agent onto the shared core is still to do.
 | v16 | harbor | `9a84f839` | Launcher `python -m time_budget.run ... -- <agent command>`: proxy + agent in one command; stops the agent's process group if it runs past the deadline plus a grace period (the one thing the proxy cannot do). 43 of 43 tests; live check: a 60 s command stopped at 45.9 s on a 40 s budget with 5 s grace |
 | v17 | harbor | `8f2ba7a1` | The proxy records each run's first user message (`first_user`) on its first request, so a run can be matched to its task. TUA-Bench `subset/tools/proxy_report.py` joins a proxy event log with the Harbor trials (matches, close calls, trials stopped by time, lateness after the deadline, replies); on the two Claude Code smoke jobs it matched 3 of 3 trials, lateness 0.5 s and 0.2 s. 43 of 43 tests |
 | v18 | harbor | `63217a11` | The Harbor agent's hard deadline waits for a reply or a command on the budget clock, re-read every 0.5 s, instead of one asyncio timeout on the event loop's clock (late under WSL with `clock: wall`). Live: work lateness 0.2 to 0.5 s, against 2.0 to 4.1 s before (3 trials each at 90 s). 35 of 35 budget tests, 64 of 64 terminus-2 tests. Not yet in the WSL copy (the ablation imports it) |
+| v19 | harbor | `8cee7b44` | Proxy and launcher `--cap-tool-timeout TOOL:FIELD:UNIT[:DEFAULT]` and `--cap-margin`: a tool call reaches the agent with its timeout no longer than the time left minus the margin (all three formats, streamed or not); later requests carry the model's own value back; `tool_capped` events. 50 of 50 package tests. Self-tests with Claude Code 2.1.322: the command is ended at the deadline only with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -505,6 +536,7 @@ deadline). Moving the agent onto the shared core is still to do.
 | `smoke` + `tbproxy` | Harbor's claude-code agent through the proxy: `smoke-proxy-claude-code/2026-11-11__23-01-37` (1 trial); `2026-11-11__22-49-37` was stopped (wrong proxy address) and is not used | Done: reward 1 |
 | `smoke` + `tbproxy` | 2 Claude Code trials at once through one proxy URL: `smoke-proxy-claude-code/2026-11-12__00-18-33` | Done: separate clocks, reward 1 in both |
 | `smoke` | Pilot settings at 90 s, 3 trials each: `swe-smoke-wall-time90/2026-11-12__05-26-14` (v18 code via `PYTHONPATH` to the Windows copy), `2026-11-12__05-36-10` (the WSL copy's code, before v18) | Done: reward 1 in 6 of 6; lateness in the clock section |
+| `probe` | Claude Code tool-timeout self-tests with a scripted model: `jobs/pilot/selftest-cc-timeout/2026-11-12__06-09-02`, `jobs/pilot/selftest-cc-timeout-nobg/2026-11-12__06-12-19` and `2026-11-12__06-17-13` (proxy events `~/work/proxy-smoke/probe-cc*.jsonl`) | Done: results in the section "Commands still running at the deadline under the proxy" |
 
 ## Log
 
@@ -575,3 +607,10 @@ deadline). Moving the agent onto the shared core is still to do.
   settings at 90 s against the old code on the same task (3 trials each): work lateness 0.2 to 0.5 s against 2.0 to
   4.1 s. The "77.0 s on 75 s" cited earlier as evidence of the drift was corrected: it was a monotonic-clock run whose
   lateness included the saved diff. Change entry added to the analysis plan before any trial of batches 2 and 3.
+- 2026-11-12 06:25: v19, the proxy lowers a tool's own timeout to the time left, so an agent ends a command still
+  running at the deadline. Checked on Claude Code 2.1.322 with a scripted model (no load on the shared server):
+  Harbor turns Claude Code's background tasks on, and then a timed-out command keeps running and Claude Code waits
+  for it (exit at 100.8 s on a 40 s budget); with them off and a 3.5 s margin it ended at 39.0 s. Batch 4 changed
+  before any of its trials: cap and margin on both proxies, background tasks off, model aliases in the configs (the
+  config route for the proxy address was used live for the first time here, and Harbor sets the aliases only on
+  the shell route).

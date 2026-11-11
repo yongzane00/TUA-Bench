@@ -1,8 +1,12 @@
 # qwen38-flash-next/cc-dev-full-time900-rounds3 - written by hand (not from make_variant.py): batch 4 of
 # subset/results/analysis-plan.md. Harbor's claude-code agent, unchanged and pinned to one version, on qwen3.8 through
 # the time-budget proxy for the full arm (port 8912; started by subset/tools/run_cc_batch.sh with
-# --feedback full --budget 900 --report-request --track-conversations). The container reaches the proxy as
-# host.docker.internal; no Anthropic API is called.
+# --feedback full --budget 900 --report-request --track-conversations --cap-tool-timeout Bash:timeout:ms:120000
+# --cap-margin 3.5). The container reaches the proxy as host.docker.internal; no Anthropic API is called.
+# CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1: a Bash command whose timeout the proxy lowered to the time left is
+# ended at that timeout instead of moved to the background (Harbor turns background tasks on; checked with
+# pilot/selftest/selftest-cc-timeout*.yaml). The model aliases are the ones Harbor sets itself when the proxy
+# address comes from the shell environment instead of env below.
 #
 #   bash subset/tools/run_cc_batch.sh      (proxies + quiet-start rounds for both arms)
 n_attempts: 1
@@ -38,3 +42,8 @@ agents:
   env:
     ANTHROPIC_BASE_URL: http://host.docker.internal:8912
     ANTHROPIC_API_KEY: EMPTY
+    CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
+    ANTHROPIC_DEFAULT_SONNET_MODEL: qwen3.8-flash-next
+    ANTHROPIC_DEFAULT_OPUS_MODEL: qwen3.8-flash-next
+    ANTHROPIC_DEFAULT_HAIKU_MODEL: qwen3.8-flash-next
+    CLAUDE_CODE_SUBAGENT_MODEL: qwen3.8-flash-next

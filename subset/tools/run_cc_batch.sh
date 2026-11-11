@@ -5,7 +5,8 @@
 #   cd ~/work/TUA-Bench && bash subset/tools/run_cc_batch.sh [rounds]
 #
 # Starts one proxy per arm in tmux session `ccproxy` (hidden on port 8911, full on 8912; 900 s per run from its first
-# model request, hard deadline, the report request in both arms, one run per conversation because the 2 concurrent
+# model request, hard deadline, the report request in both arms, a Bash timeout no longer than the time left minus
+# 3.5 s (Claude Code then ends the command itself), one run per conversation because the 2 concurrent
 # trials of an arm share one URL), then the rounds via run_parallel.sh in tmux session `cc4`. Proxy events (one JSON
 # line per model call, note sent, stop) go to ~/work/proxy-runs/cc4-<arm>.jsonl; join them with the trials using
 # subset/tools/proxy_report.py <events> <job dirs of the arm> --budget 900 (matches, lateness). Stop all:
@@ -18,6 +19,7 @@ mkdir -p ~/work/proxy-runs
 proxy() {  # <arm> <port>
   echo "cd ~/work/harbor && uv run --no-project --with aiohttp --with-editable ./packages/time-budget \
 python -m time_budget.proxy --upstream $UPSTREAM --budget 900 --feedback $1 --report-request --track-conversations \
+--cap-tool-timeout Bash:timeout:ms:120000 --cap-margin 3.5 \
 --port $2 --events ~/work/proxy-runs/cc4-$1.jsonl 2>&1 | tee -a ~/work/proxy-runs/cc4-$1.log"
 }
 tmux new-session -d -s ccproxy -n hidden "$(proxy hidden 8911)"

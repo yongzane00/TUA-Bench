@@ -1,0 +1,31 @@
+# Scripted-model self-test: what Harbor's claude-code agent (2.1.322) does when the time-budget proxy lowers a Bash
+# call's timeout to the time left. The model is pilot/selftest/scripted_messages.py: its first answer is one 90 s Bash
+# loop that appends the time to /logs/agent/probe-ticks (the trial's agent folder) every second, so the ticks show when
+# the command stopped and whether it outlived Claude Code. No model server is used. The proxy address comes from env
+# below, as in batch 4.
+# This one also sets CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 (a timed-out command is ended, not moved to the
+# background).
+#
+#   cd ~/work/TUA-Bench && uv run --no-project --with aiohttp python pilot/selftest/scripted_messages.py 8920 \
+#       ~/work/proxy-smoke/scripted-cc.jsonl &
+#   cd ~/work/harbor && uv run --no-project --with aiohttp --with-editable ./packages/time-budget \
+#       python -m time_budget.proxy --upstream http://127.0.0.1:8920/v1 --budget 40 --track-conversations \
+#       --cap-tool-timeout Bash:timeout:ms:120000 --port 8913 --events ~/work/proxy-smoke/probe-cc.jsonl &
+#   cd ~/work/TUA-Bench && uv run --no-sync harbor run -c pilot/selftest/selftest-cc-timeout-nobg.yaml \
+#       -o <TUA-Bench on C:>/jobs/pilot/selftest-cc-timeout-nobg --yes
+#   The run 2026-11-12__06-17-13 added --cap-margin 3.5 to the proxy (batch 4's setting).
+n_attempts: 1
+n_concurrent_trials: 1
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-7530
+agents:
+- name: claude-code
+  model_name: qwen3.8-flash-next
+  kwargs:
+    version: "2.1.322"
+  env:
+    ANTHROPIC_BASE_URL: http://host.docker.internal:8913
+    ANTHROPIC_API_KEY: EMPTY
+    CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"

@@ -83,11 +83,11 @@ agent through the proxy (`time_budget.proxy`, harbor fork `5bae9619`), shows the
 | Tasks | The same 20 dev tasks as batch 2 |
 | Agent | Harbor's `claude-code` agent, version 2.1.322 pinned, no code change; model qwen3.8-flash-next behind the proxy (Anthropic messages format) |
 | Arms | `cc-dev-hidden-time900-rounds3` (proxy `--feedback hidden`: nothing shown, same stop) and `cc-dev-full-time900-rounds3` (`--feedback full`: budget sentence and meter line); both with `--report-request` (the same report request in both arms) and no wrap-up notice |
-| Budget | 900 s per trial on the wall clock, from the trial's first model request (Claude Code's install is outside it); a reply still running at 900 s is cut and replaced by the stop reply; later requests get HTTP 400. The proxy cannot stop a command Claude Code is running |
+| Budget | 900 s per trial on the wall clock, from the trial's first model request (Claude Code's install is outside it); a reply still running at 900 s is cut and replaced by the stop reply; later requests get HTTP 400. Every Bash call reaches Claude Code with its timeout no longer than the time left minus 3.5 s (`--cap-tool-timeout Bash:timeout:ms:120000 --cap-margin 3.5`; the model's own value is restored in later requests), and `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` makes Claude Code end a command at its timeout instead of moving it to the background, so a command running at the deadline is ended by Claude Code itself (both arms; added 2026-11-12, see the changes below) |
 | Size | 3 rounds of 20 tasks per arm (60 trials per arm, 120 in all), the two arms side by side with 2 trials each (4 at once; the proxy keeps one clock per conversation), quiet-start rounds (`subset/tools/run_cc_batch.sh`); run after batch 3 |
 | Primary metric | Qualified deliveries (reward 1), x of 60 per arm |
 | Comparison | Full - hidden gap, paired bootstrap over the 20 tasks, 4000 resamples, seed 0. Shown next to batch 2's full - hidden gap on the same tasks; the two gaps are not tested against each other (too few tasks) |
-| Secondary | Lateness: Claude Code's end minus the deadline, P95 per arm (expected above batch 2's because a running command is not cut); trials stopped by the deadline; replies per trial; time of the final answer; failed proxy matches (a trial's requests split over two runs or two trials in one run, from the proxy event log against the trial logs) |
+| Secondary | Lateness: Claude Code's end minus the deadline, P95 per arm; trials stopped by the deadline; Bash calls whose timeout was lowered (`tool_capped` events); replies per trial; time of the final answer; failed proxy matches (a trial's requests split over two runs or two trials in one run, from the proxy event log against the trial logs) |
 
 **Decision.** The clock "carries over to the second harness" if the full - hidden gap has a 95% lower bound above
 0; "does no harm there" if the lower bound is above -3 of 60; otherwise "uncertain" (an interval beyond +-6 of 60 on
@@ -123,3 +123,13 @@ affected trials are listed; they are not dropped.
   4.1 s before and 0.2 to 0.5 s after (3 trials each). The configs do not change, and every arm of batches 2 and 3
   runs the new code. Batch 1 does not use the hard deadline and runs on the earlier code: the copy of the agent it
   imports is updated only after it ends.
+- 2026-11-12, before any trial of batch 4, the same in both arms: (1) the proxies lower each Bash call's timeout to
+  the time left minus 3.5 s, and (2) `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` is set, because Harbor turns Claude Code's
+  background tasks on and a timed-out command is then moved to the background and keeps running. Scripted-model
+  self-tests (`pilot/selftest/selftest-cc-timeout*.yaml`, 40 s budget, one 90 s command): without (2) the command
+  ran all 90 s, Claude Code waited for it and then exited with an error at 100.8 s; with (2) the command was ended at
+  its timeout and Claude Code exited cleanly at 46.5 s, and with the 3.5 s margin at 39.0 s. The earlier text
+  expected batch 4's lateness to exceed batch 2's because the proxy could not stop a running command; that no longer
+  holds. (3) The model aliases (`ANTHROPIC_DEFAULT_{SONNET,OPUS,HAIKU}_MODEL`, `CLAUDE_CODE_SUBAGENT_MODEL`) are set to
+  qwen3.8 in the configs' env: Harbor sets them only when the proxy address comes from the shell environment, which
+  the smoke runs used, and not when it comes from the config, which the batch uses. Batches 1 to 3 are unchanged.
