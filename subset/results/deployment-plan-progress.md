@@ -440,6 +440,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | v11 | harbor | `920c6fd2` | The LangChain adapter becomes a thin layer over `TimeBudget`: one implementation of the timing, texts and stop for every framework. 22 of 22 tests; live check on qwen3.8 (normal finish, cut at 8.0 s) |
 | v12 | harbor | `efe819e2` | `time_budget.proxy`: the budget for an unchanged agent through its model base URL (meter per request, reply cut at the deadline, stop reply in the agent's own format, tool-call pieces held until a reply completes); `TimeBudget.run` re-reads the budget clock every 0.5 s instead of one asyncio timeout on the monotonic clock. 32 of 32 tests; live checks with LangChain and stock terminus-2 |
 | v13 | harbor | `3cb6ddda` | The proxy also edits the Anthropic messages format: Claude Code (Harbor's installed agent, unchanged) ran through it in the task container on qwen3.8, cut at 300.0 s, reward 1. 35 of 35 tests |
+| v14 | harbor | `5bae9619` | Proxy `--track-conversations`: requests without a run id are sorted into runs by the history they resend, so concurrent trials that share one base URL keep separate clocks. 37 of 37 tests; live check waits for a time the ablation is not waiting on a quiet server |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -489,3 +490,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   the task container (cut at 300.0 s, reward 1). The model sent 7 more replies after the wrap-up notice
   while the turn count rose from 1 to 9; logged as idea 4, then checked on the H7 runs: such a rise happened in 13 of
   219 trials, with no more timeouts; no change.
+  v14: concurrent trials in one Harbor job all get the same base URL (Harbor's agent `env` is per job), so the
+  proxy now sorts requests into runs by conversation. Its live check (2 Claude Code trials at once) was held back:
+  at 23:42 the server read 0 requests for the first time since the afternoon, and the ablation gate gets that
+  window first.
