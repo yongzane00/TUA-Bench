@@ -21,6 +21,7 @@ final at 24.5 s (4.5 s past the 20 s budget).
 import asyncio
 import json
 
+from harbor.agents.terminus_2.terminus_2 import Terminus2
 from harbor.agents.terminus_2.terminus_2_harness7 import Terminus2Harness7
 from harbor.llms.base import BaseLLM, LLMResponse
 from harbor.models.metric.usage_info import UsageInfo
@@ -39,6 +40,12 @@ SCRIPTS = {
                      ("ps -eo pid,ppid,pgid,sid,tty,tpgid,stat,comm,args | cut -c1-150\n", 1.0),
                      ("sleep 600\n", 1.0)])),
         (60.0, reply([("", 1.0)])),
+    ],
+    # Plugin-off check: the same short conversation for stock terminus-2 and for H7 with each feedback level.
+    # Commands with fixed output (no progress meters); 8 s replies so that concurrent trials overlap.
+    "baseline": [
+        (8.0, reply([("ls /testbed | head -3\n", 1.0), ("python -c 'print(6*7)'\n", 1.0)])),
+        (8.0, reply([("echo selftest-done\n", 0.5)], done=True)),
     ],
 }
 
@@ -60,6 +67,15 @@ class ScriptedLLM(BaseLLM):
 
     def get_model_output_limit(self) -> int | None:
         return 8192
+
+
+class ScriptedStock(Terminus2):
+    def __init__(self, *args, script: str = "baseline", **kwargs):
+        super().__init__(*args, **kwargs)
+        self._llm = ScriptedLLM(script)
+
+    def version(self) -> str | None:
+        return (super().version() or "") + "-scripted"
 
 
 class ScriptedH7(Terminus2Harness7):

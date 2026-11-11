@@ -272,6 +272,24 @@ reported both ways. `interrupt_at_stop: true` is on in all seven pilot configs (
 arm, recorded as a dated change in the analysis plan before any of their trials. 30 of 30 unit tests pass, with the
 process tree from the real container as the test fixture.
 
+## Plugin off = stock agent; concurrent trials (plan p7, p11; 2026-11-11)
+
+The plan's engineering checks ask that switching the plugin off restores the base behaviour (p7) and that concurrent
+tasks do not share timing (p11, week 2). `pilot/selftest/selftest-baseline.yaml` runs one scripted conversation
+(commands with fixed output) with three agents at once on the same Django task, and
+`pilot/selftest/compare_prompts.py` compares every prompt the model was sent, after replacing the container hostname
+and collapsing the pane's empty padding lines:
+
+| Agent | Prompts vs stock terminus-2 | Budget clock vs the trial's own run time |
+|---|---|---|
+| H7, `feedback: hidden` (the off position) | 3 of 3 identical | 20.8 s vs 22.1 s |
+| H7, `feedback: full` | Differ only by the budget sentence (prompt 0) and one meter line per update | 20.1 s vs 20.1 s |
+
+The three trials ran at the same time for 13.8 s and each budget clock followed its own trial (the 1.3 s in the hidden
+row is Harbor's start time being recorded before the agent's `run` starts). A first attempt used `git status`,
+whose progress meter printed at different moments in each container; that was terminal timing, not the plugin, and
+the script now uses commands with fixed output.
+
 ## LangChain adapter on a live model (2026-11-11)
 
 `packages/time-budget/examples/live_smoke.py` (harbor fork) ran `TimeBudgetMiddleware` in a real `create_agent` loop
@@ -319,7 +337,7 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
 | v6 | harbor | `c61156e9` | `packages/time-budget`: core + LangChain middleware. 11 of 11 tests |
 | v6 | harbor | `2749ca37` | `packages/time-budget/examples/live_smoke.py`; live check and server-side cancel check in the READMEs |
 | v7 | harbor | `c41a5847` | `interrupt_at_stop`: Ctrl-C the terminal's running command at a budget stop and check it exited; one container call each for the check and the saved diff; `stopped_at_sec`. 30 of 30 tests |
-| v7 | TUA-Bench | (this commit) | `pilot/selftest/` scripted-model self-test; `interrupt_at_stop` on in the seven pilot configs; analysis-plan change recorded |
+| v7 | TUA-Bench | `c03e843` | `pilot/selftest/` scripted-model self-test; `interrupt_at_stop` on in the seven pilot configs; analysis-plan change recorded |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -349,3 +367,5 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
   trials, `--did` checked on finished runs (reproduces the second-curve result, +0 of 200, -20 to +20).
   Deadline cleanup (plan p4, p11): `interrupt_at_stop` (v7), checked live with a scripted model in a Django
   container (3 runs, 2 fixes); on in the pilot configs.
+  Plugin-off check: H7 hidden sends the model exactly what stock terminus-2 sends (3 of 3 prompts); three
+  concurrent scripted trials kept separate clocks.
