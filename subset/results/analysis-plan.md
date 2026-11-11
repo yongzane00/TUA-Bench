@@ -49,7 +49,27 @@ has a lower bound above -3 of 60, (b) it does not have more wrong declarations t
 estimate is not below the full arm's. Otherwise the full arm stays the default and the wrap-up notice stays off.
 Timeliness target: P95 lateness at most 5 s in every arm.
 
-## Rules for both batches
+## Batch 3: latency intervention (plan p5, p6 "延迟机制"), added 2026-11-11 before any of its trials
+
+| Item | Fixed value |
+|---|---|
+| Tasks | The same 20 dev tasks as batch 2 |
+| Arms | `swe-dev-hidden-delay5-time900-rounds3`, `swe-dev-full-delay5-time900-rounds3`, `swe-dev-hidden-delay20-time900-rounds3`, `swe-dev-full-delay20-time900-rounds3`: batch 2's hidden and full configs plus `extra_reply_delay_sec` 5 or 20 (a wait after every model reply, counted in the budget and cut by the hard deadline). The 0 s reference is batch 2's hidden and full arms, which differ only in the delay (the plan allows reusing results with an identical configuration) |
+| Budget | 900 s on the real-time clock, hard deadline, `git diff` saved at the stop |
+| Size | 3 rounds of 20 tasks per arm (60 trials per arm, 240 in all), the four arms side by side, quiet-start rounds; run after batch 2 |
+| Primary metric | Qualified deliveries (reward 1), x of 60 |
+| Comparison | Shown - hidden gap at 0, 5 and 20 s, paired bootstrap over the 20 tasks; the change in the gap from 0 s to 20 s (and to 5 s), bootstrapped with all of a task's trials in the six arms kept together; 4000 resamples, seed 0 |
+| Secondary | Turns per trial, wrong declarations, P95 lateness, trials ended by time with an empty diff |
+
+**Decision (plan H1, dose form).** The clock's value grows with reply latency if the 20 s gap minus the 0 s gap has a
+95% lower bound above 0. If the interval includes 0, the result is "no evidence that the clock helps more when
+replies are slower", and the claim is narrowed as the plan prescribes; if it spans both a clear gain and a clear loss
+(beyond +-6 of 60), it is reported as "uncertain". The natural-speed check on the finished TUA runs (progress log,
+2026-11-11) found no dose-response within +-10% speed, so a null here is the expected outcome unless the effect
+appears only at larger delays. The shown arm stays `full` even if batch 1 picks a simpler level, so that the 0 s
+reference from batch 2 stays valid.
+
+## Rules for all batches
 
 - No trial is dropped after the fact. A trial with an infrastructure error counts as a failure (missing reward = 0,
   as Harbor's Mean does) and is listed by its error type.
@@ -57,7 +77,8 @@ Timeliness target: P95 lateness at most 5 s in every arm.
 - Results are reported as counts (x of n) with the interval; an interval that spans both a clear gain and a clear
   loss is reported as "uncertain".
 - The held-out pilot tasks (40) and the other 80 TUA tasks are not used until the configuration is locked.
+- Batches share the server one at a time, in the order 1, 2, 3; two batches never run at once.
 
 ## Changes after the freeze
 
-None yet.
+- 2026-11-11, before any trial of it: batch 3 (latency intervention) added. Batches 1 and 2 are unchanged.

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Report for a side-by-side ablation (run_parallel.sh): every arm vs the first arm, plus server load per trial.
 
-    python3 ablation_report.py <model> <label>=<config> [<label>=<config> ...] [--vs <label>]      (run in WSL)
+    python3 ablation_report.py <model> <label>=<config> [<label>=<config> ...] [--vs <label>] [--did A,B,C,D]  (WSL)
     e.g. ablation_report.py qwen38-flash-next I0=harness0-time2400-rounds3 I1=harness7-time2400-once-rounds3 \
          I2=harness7-time2400-clock-rounds3 I3=harness7-time2400-rounds3
 
 Merges every finished job folder of each config (one per round). Per arm: solved (reward 1) x of n, mean
 reward, $ per solved, trials ended by time. Per arm vs the first arm (and vs the --vs arm, if given): solved gap with a 95% CI from a paired
-bootstrap over tasks (attempts stay with their task). Server load: for each trial, the mean number of requests
+bootstrap over tasks (attempts stay with their task). --did A,B,C,D adds the difference of gaps (A - B) - (C - D),
+e.g. (full - hidden at +20 s) - (full - hidden at 0 s) for the latency batch, bootstrapped with all of a task's trials
+in the four arms kept together (all trials and quiet trials). Server load: for each trial, the mean number of requests
 running on the model server during its agent phase, from vllmtop's history (~/.local/share/vllmtop/usage.db),
 minus our own trials active at the same time (each counted at 0.8, the share of time our agents wait on the
 model). Trials with an estimated other-user load below 0.5 count as "quiet"; the arms are compared on all
@@ -102,6 +104,36 @@ def gap_ci(a, b):
     return g(tasks), gs[int(.025 * REPS)], gs[int(.975 * REPS)], len(tasks)
 
 
+def did_ci(groups):
+    """(A - B) - (C - D) in solved trials per arm size, bootstrap over the tasks all four arms share."""
+    by = [defaultdict(list) for _ in groups]
+    for g, ts_ in zip(by, groups):
+        for t in ts_:
+            g[t["task"]].append(t["solved"])
+    tasks = sorted(set.intersection(*(set(g) for g in by)))
+    if not tasks:
+        return None
+    n_per = len(groups[0]) / max(1, len(by[0]))
+
+    def f(ts_):
+        m = [[stx.mean(g[x]) for x in ts_] for g in by]
+        return sum(a - b - c + d for a, b, c, d in zip(*m)) * n_per
+
+    rnd = random.Random(0)
+    fs = sorted(f([rnd.choice(tasks) for _ in tasks]) for _ in range(REPS))
+    return f(tasks), fs[int(.025 * REPS)], fs[int(.975 * REPS)], len(tasks)
+
+
+def did_line(arms, keep, labels, title):
+    pick = {label: [t for t in ts_ if keep(t)] for label, _, ts_ in arms}
+    if not all(pick.get(x) for x in labels):
+        print(f"\n{title}: n/a (an arm has no trials)")
+        return
+    r = did_ci([pick[x] for x in labels])
+    a, b, c, d = labels
+    print(f"\n{title}: ({a} - {b}) - ({c} - {d}) = {r[0]:+.0f} solved per arm ({r[1]:+.0f} to {r[2]:+.0f}), {r[3]} tasks")
+
+
 def table(arms, keep, title, ref=None):
     print(f"\n{title}\n")
     extra = f" Solved gap vs {ref} (95% CI) |" if ref else ""
@@ -132,6 +164,9 @@ def main():
     ref = None
     if "--vs" in argv:
         i = argv.index("--vs"); ref = argv[i + 1]; argv = argv[:i] + argv[i + 2:]
+    did = None
+    if "--did" in argv:
+        i = argv.index("--did"); did = argv[i + 1].split(","); argv = argv[:i] + argv[i + 2:]
     model, pairs = sys.argv[1], [a.split("=", 1) for a in argv]
     arms = [(label, cfg, load_arm(model, cfg)) for label, cfg in pairs]
     everyone = [t for _, _, ts_ in arms for t in ts_]
@@ -140,12 +175,16 @@ def main():
         r = t.get("running")
         t["others"] = None if r is None else max(0.0, r - OWN_SHARE * (1 + own_overlap(t, everyone)))
     table(arms, lambda t: True, "All trials:", ref)
+    if did:
+        did_line(arms, lambda t: True, did, "Difference of gaps, all trials")
     known = [t for t in everyone if t["others"] is not None]
     if known:
         quiet = sum(t["others"] < 0.5 for t in known)
         print(f"\nServer load known for {len(known)} of {len(everyone)} trials; quiet (other users' load "
               f"below 0.5): {quiet} of {len(known)}. Mean other-user load: {stx.mean(t['others'] for t in known):.2f}.")
         table(arms, lambda t: t["others"] is not None and t["others"] < 0.5, "Quiet trials only:", ref)
+        if did:
+            did_line(arms, lambda t: t["others"] is not None and t["others"] < 0.5, did, "Difference of gaps, quiet trials")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | I0-I3 feedback ablation, 40 tasks x 4 arms x 3 attempts = 480 trials (p6); frozen analysis plan with rounds 4-5 | `feedback` levels in the agent (v1); 4 configs; arms run side by side, 1 trial each; 3 rounds, each started only when the server is quiet | Waiting for a quiet server (tmux `abl38`, gate log `~/work/abl38-gate.log`) |
 | Finalize control "P" with a reserve (p4) | `finalize_reserve_sec` (v2): one wrap-up notice when time left <= recent turn length + reserve | Code and tests done; run after the ablation |
 | Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits | Live check passed: 75 s budget, stopped at 77.0 s with 1 reply cut (smoke run `swe-smoke-wrap30-time75`) |
-| Latency intervention, +5 s and +20 s per reply (p5) | `extra_reply_delay_sec` (v2) | Code and tests done; run after P |
+| Latency intervention, +5 s and +20 s per reply (p5) | `extra_reply_delay_sec` (v2); 4 configs `swe-dev-{hidden,full}-delay{5,20}-time900-rounds3` (the pilot configs plus the delay); batch 3 in the frozen analysis plan with its decision rule; `ablation_report.py --did` for the change in the gap | Ready; runs after the pilot batch (batch 2), whose hidden and full arms are the 0 s reference |
 | H1: the clock helps tasks that can be done but run out of time (p5) | Classes from other base runs; gap by class (below) | First result: supported at 2400 s |
 | H2: feedback brings the deliverable earlier (p5) | First `mark_task_complete` time from trajectories | Not supported: the clock delays the first "done" and adds more just before the deadline (below) |
 | Paired task-level bootstrap, decision routes A and B (p7) | `subset/tools/plan_metrics.py` | Done for both models |
@@ -318,3 +318,5 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
   clock gap to natural speed (range too narrow to replace the latency arm). LangChain adapter checked live; vLLM
   drops cancelled replies. Turn forecast checked: the mean of the last 3 turns plus a fixed reserve is as good
   as the adaptive rules tried; 120 s covers 16856 of 17655 next turns.
+  Latency batch (plan p5) prepared: 4 configs, batch 3 added to the analysis plan before any of its
+  trials, `--did` checked on finished runs (reproduces the second-curve result, +0 of 200, -20 to +20).
