@@ -15,6 +15,7 @@ wins, one to one. Reported per job set:
   lateness          the trial's agent end minus the run's deadline (run start + budget), for runs stopped by time:
                     how long the agent took to finish after the deadline (its running command, its own wrap-up)
   replies           model replies per trial; last answer: when the last reply that finished in time ended
+  lowered timeouts  tool calls whose timeout the proxy lowered to the time left (`tool_capped`, proxy v19 on)
 """
 import glob
 import json
@@ -38,7 +39,7 @@ def load_runs(path):
     for line in open(path, encoding="utf-8"):
         e = json.loads(line)
         r = runs.setdefault(e["run_id"], dict(start=None, first_user=None, calls=[], cut=False, refused=False,
-                                              last=e["ts"], wrapup=None))
+                                              last=e["ts"], wrapup=None, capped=0))
         r["last"] = max(r["last"], e["ts"])
         if e["event"] == "agent_start":
             r["start"] = e["ts"]
@@ -47,6 +48,8 @@ def load_runs(path):
         elif e["event"] == "model_call":
             r["calls"].append(e)
             r["cut"] |= bool(e.get("cut_by_deadline"))
+        elif e["event"] == "tool_capped":
+            r["capped"] += 1
         elif e["event"] == "wrapup_notice":
             r["wrapup"] = e["elapsed_s"]
         elif e["event"] == "agent_end" and e.get("exit_reason") == "budget stop":
@@ -102,13 +105,14 @@ def main():
     pos = [a for i, a in enumerate(args) if not a.startswith("--") and (i == 0 or not args[i - 1].startswith("--"))]
     runs, trials = load_runs(pos[0]), load_trials(pos[1:], datasets)
     m, close = match(trials, runs)
-    late, replies, last_answer, stopped = [], [], [], 0
+    late, replies, last_answer, stopped, capped = [], [], [], 0, []
     for t in trials:
         r = runs.get(m.get(t["name"]))
         if not r:
             continue
         ok = [c for c in r["calls"] if c.get("status") == "success"]
         replies.append(len(r["calls"]))
+        capped.append(r["capped"])
         if ok:
             last_answer.append(ok[-1]["elapsed_s"])
         if r["cut"] or r["refused"]:
@@ -131,14 +135,17 @@ def main():
         print(f"| Replies per trial, median | {stx.median(replies):.0f} |")
     if last_answer:
         print(f"| Last reply finished in time, median (s from the run's start) | {stx.median(last_answer):.0f} |")
+    if capped:
+        print(f"| Tool calls with a lowered timeout | {sum(capped)}, in {sum(c > 0 for c in capped)} of {len(m)} "
+              "trials |")
     print(f"| Reward 1 | {sum(t['reward'] == 1 for t in trials)} of {n} |")
     if "--pairs" in args:
-        print("\n| Trial | Proxy run | Replies | Stopped by time | Reward |")
-        print("|---|---|---|---|---|")
+        print("\n| Trial | Proxy run | Replies | Lowered timeouts | Stopped by time | Reward |")
+        print("|---|---|---|---|---|---|")
         for t in trials:
             rid = m.get(t["name"])
             r = runs.get(rid) or {}
-            print(f"| {t['name']} | {rid or '-'} | {len(r.get('calls', []))} | "
+            print(f"| {t['name']} | {rid or '-'} | {len(r.get('calls', []))} | {r.get('capped', 0)} | "
                   f"{'yes' if r.get('cut') or r.get('refused') else 'no'} | {t['reward']:g} |")
 
 

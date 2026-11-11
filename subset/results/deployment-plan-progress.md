@@ -470,6 +470,8 @@ address (the config's `env:`; the smoke runs used the shell environment): reques
 name `qwen3.8-flash-next`. On that route Harbor does not set the model aliases for Claude Code's other model roles
 (`ANTHROPIC_DEFAULT_HAIKU_MODEL` and the rest), so the configs now set them to qwen3.8, as Harbor does on the shell
 route. A side request under a Claude model name would have reached vLLM, which serves only qwen3.8.
+`subset/tools/proxy_report.py` now counts the lowered calls per trial (batch 4's new secondary; on the first two
+self-tests: 2 calls, in 2 of 2 trials).
 
 ## Ideas to test (new, beyond the plan)
 
