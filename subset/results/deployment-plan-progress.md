@@ -150,6 +150,20 @@ time: v5 adds `clock: wall`, used by the pilot configs. `subset/tools/event_log.
 clock per trial, so its `budget_left_s` matches the stop (checked: a 2400 s trial killed at 2506 real seconds shows
 2400.0 on the budget clock).
 
+**On the Clock, full paper (arXiv HTML, read 2026-11-11).** What it does and does not cover, and where this work differs:
+
+| Point | On the Clock | This work |
+|---|---|---|
+| Control | No hidden-budget arm with the same stop; the prompt-only baseline used 161% of its 15-min budget, so "no clock" also meant "more time". With clocks: on budget 15% -> 62% of runs, quality 49.4 -> 42.1 (their Table 2) | Hidden arm with the same stop isolates the information; quality rises (+12 and +17 of 200 at 2400 and 3600 s) |
+| Forecast | "the harness provides no remaining-time forecasts" | The meter shows turns that fit at the recent pace; I2 vs I3 tests whether it adds anything |
+| Long generations | Stated limitation: feedback only between generations, a long generation can overrun | `hard_deadline` cancels the running reply (live check: 2 s late) |
+| Wrap-up | Prompt instructions only; no harness-triggered wrap-up | One notice triggered by the measured pace (arm P, plan H3) |
+| Inference-side control | none | `late_effort` |
+| Speed regime | 1.4 to 1.8 s per turn (27B), no injected latency | about 17 tok/s, most of the time spent waiting for the model; latency injection planned |
+
+Their "clamp" hook (cut a command's time limit to the deadline) is the same idea as the command-wait cut in
+`hard_deadline`; their RL policies fill time with rejected commands, a failure mode to check in our traces too.
+
 ## Ideas to test (new, beyond the plan)
 
 1. **Effort that follows the clock.** About four fifths of the time goes to waiting for the model. Near the
