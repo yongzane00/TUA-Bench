@@ -2,3 +2,4 @@
 # The "redact" clean/smudge commands live only in the local .git/config; without them this line is a no-op.
 subset/** filter=redact
 .claude-visuals/** filter=redact
+pilot/** filter=redact

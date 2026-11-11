@@ -194,18 +194,35 @@ def main():
 
         if h2:
             print("\nH2: first declaration of completion (mark_task_complete), seconds from the first step:\n")
-            print("| Budget (s) | Arm | Trials that declared | Median first declaration (s) | Ended by time and never declared |")
-            print("|---|---|---|---|---|")
+            print("| Budget (s) | Arm | Trials that declared | Of those, not solved | Median first declaration (s) | "
+                  "Ended by time and never declared |")
+            print("|---|---|---|---|---|---|")
+            firsts = {}
             for b in budgets:
                 for arm in ("hidden", "shown"):
                     if (arm, b) not in data:
                         continue
                     ts = data[(arm, b)]
-                    fc = [first_complete(t["dir"]) for t in ts]
+                    fc = firsts[(arm, b)] = [first_complete(t["dir"]) for t in ts]
                     dec = [x for x in fc if x is not None]
                     never = sum(1 for t, x in zip(ts, fc) if t["by_time"] and x is None)
-                    print(f"| {b} | {arm} | {len(dec)} of {len(ts)} | {fmt(stx.median(dec) if dec else None)} | "
+                    wrong = sum(1 for t, x in zip(ts, fc) if x is not None and not t["solved"])
+                    print(f"| {b} | {arm} | {len(dec)} of {len(ts)} | {wrong} of {len(dec)} | "
+                          f"{fmt(stx.median(dec) if dec else None)} | "
                           f"{never} of {sum(t['by_time'] for t in ts)} |")
+            # The median above only covers trials that declared, so it favours the arm that declares on fewer,
+            # quicker tasks. Counting declarations by a fixed time over all trials avoids that.
+            marks = [300, 600, 900, 1200, 1800, 2400, 3600]
+            print("\nTrials that had declared completion by t seconds (all trials of the run):\n")
+            print("| Budget (s) | Arm | " + " | ".join(f"t={m}" for m in marks) + " |")
+            print("|---|---|" + "---|" * len(marks))
+            for b in budgets:
+                for arm in ("hidden", "shown"):
+                    if (arm, b) not in firsts:
+                        continue
+                    fc = firsts[(arm, b)]
+                    cells = [f"{sum(1 for x in fc if x is not None and x <= m)}" if m <= b else "" for m in marks]
+                    print(f"| {b} | {arm} | " + " | ".join(cells) + " |")
 
 
 if __name__ == "__main__":

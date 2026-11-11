@@ -12,9 +12,10 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits | Code and tests done; needs a live check |
 | Latency intervention, +5 s and +20 s per reply (p5) | `extra_reply_delay_sec` (v2) | Code and tests done; run after P |
 | H1: the clock helps tasks that can be done but run out of time (p5) | Classes from other base runs; gap by class (below) | First result: supported at 2400 s |
-| H2: feedback brings the deliverable earlier (p5) | First `mark_task_complete` time from trajectories | Running |
-| Paired task-level bootstrap, decision routes A and B (p7) | `subset/tools/plan_metrics.py` | Done for qwen3.8; qwen3.6 running |
-| Cost per qualified delivery, empty-handed timeouts (p7) | same | Done for qwen3.8 |
+| H2: feedback brings the deliverable earlier (p5) | First `mark_task_complete` time from trajectories | Not supported: the clock delays the first "done" and adds more just before the deadline (below) |
+| Paired task-level bootstrap, decision routes A and B (p7) | `subset/tools/plan_metrics.py` | Done for both models |
+| Cost per qualified delivery, empty-handed timeouts (p7) | same | Done for both models |
+| Week-1 items for the next group meeting (p11): task contract, 10 reproducible tasks, data split, budget and logging spec, first configs | `pilot/README.md` (contract, budget, logging), `pilot/tasks.md` (split), `pilot/configs/oracle-week1.yaml` | Contract, split, spec and configs written; oracle check of the 10 tasks running (tmux `pilot`) |
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | | Later |
 | Framework middleware + LangChain adapter (p3) | | Later |
 | Hosted API replication (p9) | | Needs money: ask the user |
@@ -65,6 +66,34 @@ At 2400 s the gain sits in tasks the base can do but runs out of time on, as H1 
 tasks that are not time-limited at 3600 s, which become time-limited when the budget is a third as long. Tasks the
 base never solves gain almost nothing at any budget.
 
+**H2.** The plan's H2 says feedback brings the deliverable earlier. Counting, over all 200 trials of each run, how
+many had declared the task complete (`mark_task_complete`) by a given time:
+
+| Budget (s) | Arm | by 300 s | by 600 s | by 900 s | by 1200 s | by 1800 s | by 2400 s | by 3600 s |
+|---|---|---|---|---|---|---|---|---|
+| 1200 | hidden | 75 | 101 | 113 | 123 | | | |
+| 1200 | shown | 55 | 87 | 102 | 140 | | | |
+| 2400 | hidden | 58 | 100 | 121 | 127 | 137 | 141 | |
+| 2400 | shown | 55 | 88 | 105 | 113 | 138 | 160 | |
+| 3600 | hidden | 68 | 97 | 107 | 119 | 130 | 136 | 153 |
+| 3600 | shown | 48 | 86 | 100 | 111 | 133 | 142 | 170 |
+
+The shown arm declares later at first and overtakes only in the last part of the budget, at every budget (1800 s is
+the same; full table from `plan_metrics.py qwen38 --h2`). So H2 is not supported; following the plan (p5), the effect
+is described as a change in stopping behaviour, not as better planning. Declarations are about as often wrong in
+both arms (declared but not solved, 2400 s: 73 of 172 shown, 59 of 144 hidden); the clock adds declarations, right
+and wrong, in proportion.
+
+**Speed was the same in both arms.** The arms of each pair ran on different days, so the model's speed could differ.
+Median output tokens per second per trial, qwen3.8: 16.8 / 17.0 (1200 s, hidden / shown), 17.5 / 17.4 (1800 s),
+16.9 / 16.8 (2400 s), 17.2 / 16.1 (3600 s; here the hidden arm was the faster one). Speed does not explain the
+gaps. qwen3.6 is even across pairs except 4800 s (hidden 135, shown 170 tokens per second).
+
+**qwen3.6.** Gaps (shown - hidden, of 200): +2 (600 s), +6 (1800 s), +6 (2400 s), +3 (3600 s), +3 (4800 s); every CI
+includes 0, so route A fails everywhere. $ per solved is lower in the shown arm at every budget (ratio 0.77 to 0.93)
+but only the 600 s and 1800 s ratios clear route B's 0.85 line, with CIs up to 1.08 and 1.06. Its late stops (P95
+up to 600 s) are litellm's 600 s timeout on stalled requests, which `hard_deadline` also cuts.
+
 **Server conditions.** The qwen3.8 server moved to `<qwen38-vllm-host-2>` (used by every qwen3.8 run since 2026-10-23); the
 old `<qwen38-vllm-host>` no longer answers. vllmtop history for the last 14 days: the server had requests running in 42 to
 67 of every 100 seconds at every hour of the day (quietest 09:00 to 14:00), and busy spells last whole days
@@ -96,7 +125,8 @@ minutes with no requests from anyone; trials can later be tagged with the load d
 | v1 | harbor | `ac7c6ba3` | `feedback` kwarg: `hidden` (I0), `once` (I1), `clock` (I2), `full` (I3, same text as the finished H7 runs, checked against a trajectory). 9 of 9 unit tests pass |
 | v1 | TUA-Bench | `409ae90`, `55b16b4` | First ablation configs and launcher; server address fix; `.146` added to the local redact filter as `<qwen38-vllm-host-2>` |
 | v2 | harbor | `82c207e1` | `hard_deadline`, `finalize_reserve_sec`, `extra_reply_delay_sec` (all off by default). 17 of 17 unit tests pass |
-| v2 | TUA-Bench | this commit | Ablation as 3 quiet-start rounds (`run_parallel.sh`, `run_gate.sh`, `run_one.sh`); `-rounds3` configs replace the `-attempt3` ones; `plan_metrics.py` |
+| v2 | TUA-Bench | `ca2bae1` | Ablation as 3 quiet-start rounds (`run_parallel.sh`, `run_gate.sh`, `run_one.sh`); `-rounds3` configs replace the `-attempt3` ones; `plan_metrics.py` |
+| v3 | TUA-Bench | this commit | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
 ## Runs
 
@@ -108,4 +138,5 @@ minutes with no requests from anyone; trials can later be tagged with the load d
 ## Log
 
 - 2026-11-11: read the plan; made the branch; v1 and v2 written, tested and committed; delivery metrics, timeliness
-  and H1 computed for qwen3.8; ablation set up as quiet-start rounds.
+  and H1 computed for qwen3.8; ablation set up as quiet-start rounds. qwen3.6 metrics, H2, speed check; pilot
+  folder with the week-1 items; oracle check started (no model calls).
