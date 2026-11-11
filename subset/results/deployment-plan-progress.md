@@ -477,6 +477,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | v14 | harbor | `5bae9619` | Proxy `--track-conversations`: requests without a run id are sorted into runs by the history they resend, so concurrent trials that share one base URL keep separate clocks. 37 of 37 tests; live check passed (2 concurrent Claude Code trials on one URL, separate clocks) |
 | v15 | harbor | `8e401e5f` | The proxy also edits the OpenAI responses format (Codex, OpenAI Agents SDK), including runs that chain on the server by `previous_response_id`. 40 of 40 tests; live check with the openai SDK (tool call whole, cut at 6.0 s, closing event parsed) |
 | v16 | harbor | `9a84f839` | Launcher `python -m time_budget.run ... -- <agent command>`: proxy + agent in one command; stops the agent's process group if it runs past the deadline plus a grace period (the one thing the proxy cannot do). 43 of 43 tests; live check: a 60 s command stopped at 45.9 s on a 40 s budget with 5 s grace |
+| v17 | harbor | `8f2ba7a1` | The proxy records each run's first user message (`first_user`) on its first request, so a run can be matched to its task. TUA-Bench `subset/tools/proxy_report.py` joins a proxy event log with the Harbor trials (matches, close calls, trials stopped by time, lateness after the deadline, replies); on the two Claude Code smoke jobs it matched 3 of 3 trials, lateness 0.5 s and 0.2 s. 43 of 43 tests |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -541,3 +542,5 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   at most 2 other requests would have opened 197 times in 7 days (median wait 0.6 h) against 23 for the current
   rule (12.6 h); put to the user as a recommendation.
 - 2026-11-12 02:10: no answer yet; the gate keeps the current rule. v16: the launcher, checked live.
+- 2026-11-12 02:45: batch 4's secondary metrics are ready to compute: `proxy_report.py` (proxy runs joined to trials;
+  failed matches and lateness as the analysis plan defines them), checked on the smoke jobs.

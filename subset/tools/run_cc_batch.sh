@@ -7,7 +7,8 @@
 # Starts one proxy per arm in tmux session `ccproxy` (hidden on port 8911, full on 8912; 900 s per run from its first
 # model request, hard deadline, the report request in both arms, one run per conversation because the 2 concurrent
 # trials of an arm share one URL), then the rounds via run_parallel.sh in tmux session `cc4`. Proxy events (one JSON
-# line per model call, note sent, stop) go to ~/work/proxy-runs/cc4-<arm>.jsonl. Stop all:
+# line per model call, note sent, stop) go to ~/work/proxy-runs/cc4-<arm>.jsonl; join them with the trials using
+# subset/tools/proxy_report.py <events> <job dirs of the arm> --budget 900 (matches, lateness). Stop all:
 #   tmux kill-session -t cc4; tmux kill-session -t ccproxy
 rounds=${1:-3}
 UPSTREAM=${UPSTREAM:-http://<qwen38-vllm-host-2>:8000/v1}
