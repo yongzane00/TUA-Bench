@@ -1,0 +1,33 @@
+# Negative check for the dev tasks (plan p2: tasks must reproduce): Harbor's nop agent changes nothing, so every
+# task must score 0. A task whose tests already pass on the untouched repo cannot measure a fix and is excluded
+# (pilot/excluded.md). Found by the smoke run: django__django-7530 scores 1 with no change.
+#
+#   cd ~/work/TUA-Bench
+#   uv run --no-sync harbor run -c pilot/configs/nop-dev.yaml -o <TUA-Bench on C:>/jobs/pilot/nop-dev --yes
+n_attempts: 1
+n_concurrent_trials: 2
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-7530
+  - django__django-9296
+  - django__django-10097
+  - django__django-10880
+  - django__django-10914
+  - django__django-10973
+  - django__django-10999
+  - django__django-11066
+  - django__django-11087
+  - django__django-11095
+  - django__django-11099
+  - django__django-11119
+  - django__django-11133
+  - django__django-11141
+  - django__django-11149
+  - django__django-11163
+  - django__django-11179
+  - django__django-11206
+  - django__django-11211
+  - django__django-11239
+agents:
+- name: nop

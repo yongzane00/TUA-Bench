@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Report for a side-by-side ablation (run_parallel.sh): every arm vs the first arm, plus server load per trial.
+
+    python3 ablation_report.py <model> <label>=<config> [<label>=<config> ...]       (run in WSL)
+    e.g. ablation_report.py qwen38-flash-next I0=harness0-time2400-rounds3 I1=harness7-time2400-once-rounds3 \
+         I2=harness7-time2400-clock-rounds3 I3=harness7-time2400-rounds3
+
+Merges every finished job folder of each config (one per round). Per arm: solved (reward 1) x of n, mean
+reward, $ per solved, trials ended by time. Per arm vs the first arm: solved gap with a 95% CI from a paired
+bootstrap over tasks (attempts stay with their task). Server load: for each trial, the mean number of requests
+running on the model server during its agent phase, from vllmtop's history (~/.local/share/vllmtop/usage.db),
+minus our own trials active at the same time (each counted at 0.8, the share of time our agents wait on the
+model). Trials with an estimated other-user load below 0.5 count as "quiet"; the arms are compared on all
+trials and on quiet trials only.
+"""
+import glob
+import json
+import os
+import random
+import sqlite3
+import statistics as stx
+import sys
+from collections import defaultdict
+from datetime import datetime, timezone
+
+JOBS = os.environ.get("TUA_JOBS", "/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs")
+DB = os.path.expanduser("~/.local/share/vllmtop/usage.db")
+ENDPOINT = os.environ.get("VLLMTOP_ENDPOINT", "rpt-isp-dgx")
+OWN_SHARE = 0.8
+REPS = 4000
+
+
+def ts(s):
+    return datetime.fromisoformat(s.replace("Z", "+00:00")).replace(tzinfo=timezone.utc).timestamp()
+
+
+def load_arm(model, cfg):
+    out = []
+    for job in sorted(glob.glob(f"{JOBS}/{model}/{cfg}/20*/")):
+        try:
+            if not json.load(open(job + "result.json")).get("finished_at"):
+                continue
+        except Exception:
+            continue
+        for p in glob.glob(job + "*__*/result.json"):
+            r = json.load(open(p))
+            ae = r.get("agent_execution") or {}
+            if not ae.get("started_at") or not ae.get("finished_at"):
+                continue
+            rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward", 0) or 0
+            bud = ((r.get("agent_result") or {}).get("metadata") or {}).get("budget") or {}
+            exc = (r.get("exception_info") or {}).get("exception_type")
+            out.append(dict(task=os.path.basename(os.path.dirname(p)).split("__")[0], reward=rw, solved=rw >= 1,
+                            cost=(r.get("agent_result") or {}).get("cost_usd") or 0.0,
+                            by_time=bud.get("stop") == "time" or exc == "AgentTimeoutError",
+                            t0=ts(ae["started_at"]), t1=ts(ae["finished_at"]), job=os.path.basename(job.rstrip("/"))))
+    return out
+
+
+def server_load(trials):
+    """Mean 'running' during each trial, from the vllmtop db (None if no samples)."""
+    if not os.path.exists(DB):
+        return
+    c = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+    for t in trials:
+        row = c.execute("select avg(value), count(*) from samples where endpoint=? and metric='running' "
+                        "and ts_ms between ? and ?", (ENDPOINT, int(t["t0"] * 1000), int(t["t1"] * 1000))).fetchone()
+        t["running"] = row[0] if row and row[1] else None
+
+
+def own_overlap(t, everyone):
+    """Our other trials' average concurrency during t (time-weighted)."""
+    span = t["t1"] - t["t0"]
+    if span <= 0:
+        return 0.0
+    tot = 0.0
+    for u in everyone:
+        if u is t:
+            continue
+        lo, hi = max(t["t0"], u["t0"]), min(t["t1"], u["t1"])
+        if hi > lo:
+            tot += hi - lo
+    return tot / span
+
+
+def gap_ci(a, b):
+    ta, tb = defaultdict(list), defaultdict(list)
+    for t in a:
+        ta[t["task"]].append(t["solved"])
+    for t in b:
+        tb[t["task"]].append(t["solved"])
+    tasks = sorted(set(ta) & set(tb))
+    if not tasks:
+        return None
+    n_per = len(a) / max(1, len(set(ta)))
+
+    def g(ts_):
+        return sum(stx.mean(ta[x]) - stx.mean(tb[x]) for x in ts_) * n_per
+
+    rnd = random.Random(0)
+    gs = sorted(g([rnd.choice(tasks) for _ in tasks]) for _ in range(REPS))
+    return g(tasks), gs[int(.025 * REPS)], gs[int(.975 * REPS)], len(tasks)
+
+
+def table(arms, keep, title):
+    print(f"\n{title}\n")
+    print("| Arm | Config | Rounds | Solved | Mean reward | $ per solved | Ended by time | Solved gap vs first arm (95% CI) |")
+    print("|---|---|---|---|---|---|---|---|")
+    base = None
+    for label, cfg, ts_ in arms:
+        ts_ = [t for t in ts_ if keep(t)]
+        if not ts_:
+            print(f"| {label} | `{cfg}` | 0 | no trials | | | | |")
+            continue
+        s = sum(t["solved"] for t in ts_)
+        cost = sum(t["cost"] for t in ts_)
+        gap = "" if base is None else (lambda r: "n/a" if r is None else f"{r[0]:+.0f} ({r[1]:+.0f} to {r[2]:+.0f}), {r[3]} tasks")(gap_ci(ts_, base))
+        print(f"| {label} | `{cfg}` | {len({t['job'] for t in ts_})} | {s} of {len(ts_)} | "
+              f"{sum(t['reward'] for t in ts_) / len(ts_):.3f} | {'$%.4f' % (cost / s) if s else 'n/a'} | "
+              f"{sum(t['by_time'] for t in ts_)} of {len(ts_)} | {gap} |")
+        if base is None:
+            base = ts_
+
+
+def main():
+    model, pairs = sys.argv[1], [a.split("=", 1) for a in sys.argv[2:]]
+    arms = [(label, cfg, load_arm(model, cfg)) for label, cfg in pairs]
+    everyone = [t for _, _, ts_ in arms for t in ts_]
+    server_load(everyone)
+    for t in everyone:
+        r = t.get("running")
+        t["others"] = None if r is None else max(0.0, r - OWN_SHARE * (1 + own_overlap(t, everyone)))
+    table(arms, lambda t: True, "All trials:")
+    known = [t for t in everyone if t["others"] is not None]
+    if known:
+        quiet = sum(t["others"] < 0.5 for t in known)
+        print(f"\nServer load known for {len(known)} of {len(everyone)} trials; quiet (other users' load "
+              f"below 0.5): {quiet} of {len(known)}. Mean other-user load: {stx.mean(t['others'] for t in known):.2f}.")
+        table(arms, lambda t: t["others"] is not None and t["others"] < 0.5, "Quiet trials only:")
+
+
+if __name__ == "__main__":
+    main()
