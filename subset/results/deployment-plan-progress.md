@@ -493,12 +493,12 @@ The plan lists eight checks the plugin must pass and eight items a handover must
 |---|---|---|
 | 1. Installable plugin, version locked | `packages/time-budget` (`pip install ./packages/time-budget[proxy,langchain]`); experiments pin by commit | The package version is still 0.1.0 (unchanged since v6); a release number per frozen batch |
 | 2. Harbor and framework examples | Harbor agent `terminus_2_harness7`; proxy configs for stock terminus-2 and Claude Code; LangChain `examples/live_smoke.py`; launcher for command-line agents | A business framework example (needs the partner team) |
-| 3. Budget, wrap-up and stop semantics | Package README (each part, settings, limits); `budget_meter.py` docstring for the Harbor agent | One page that states both side by side |
+| 3. Budget, wrap-up and stop semantics | Package README: each part, settings, limits, and the table "The same method in each framework" (core, plain loop, LangChain, proxy and Harbor agent side by side; updated for v19 and v20); `budget_meter.py` docstring for the Harbor agent | |
 | 4. Task and environment list | `pilot/tasks.md`, `pilot/excluded.md`, task images from SWE-bench | |
 | 5. One full success and one timeout trajectory | Candidates in the smoke jobs | Picked from batch 2 when it has run |
 | 6. Analysis scripts and configs | `plan_metrics.py`, `ablation_report.py`, `pilot/pilot_report.py`, `proxy_report.py`, `event_log.py`; all configs in the repo | |
 | 7. Real cost report | | Needs the hosted API batch (p9, the user's decision) or GPU-hour accounting for the shared server |
-| 8. Known failure modes, scope, how to turn it off | README "Limits"; feedback `hidden` or no plugin turns it off | One list with the failure modes seen in the runs |
+| 8. Known failure modes, scope, how to turn it off | Package README "Known failure modes, where it helps, how to turn it off" (harbor `6a7198c6`): 9 failure modes seen in the runs, each with its numbers and its guard; the scope from the finished runs; `feedback: hidden` keeps only the stop | Batch 2's report check will add the false-claim rate |
 
 ## Ideas to test (new, beyond the plan)
 
