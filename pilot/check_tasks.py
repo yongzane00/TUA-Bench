@@ -3,7 +3,7 @@
 
     python3 pilot/check_tasks.py <jobs/pilot dir>          (prints a markdown table)
 
-Reads every job folder under <jobs/pilot>/oracle-*/ and <jobs/pilot>/nop-*/. A task is reproducible when every oracle
+Reads every job folder under <jobs/pilot>/ and sorts trials by agent name (oracle or nop). A task is reproducible when every oracle
 trial scored 1 and every nop trial scored 0. Also prints the grading time (verifier phase) per task and its P90,
 which sets the wrap-up reserve (plan p4).
 """
@@ -25,15 +25,17 @@ def dur(phase):
 
 
 res = defaultdict(lambda: {"oracle": [], "nop": [], "verify": []})
-for kind in ("oracle", "nop"):
-    for p in glob.glob(f"{root}/{kind}-*/20*/*__*/result.json"):
-        r = json.load(open(p, encoding="utf-8"))
-        task = os.path.basename(os.path.dirname(p)).split("__")[0] + "__" + os.path.basename(os.path.dirname(p)).split("__")[1]
-        rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward")
-        res[task][kind].append(rw)
-        v = dur(r.get("verifier"))
-        if v is not None:
-            res[task]["verify"].append(v)
+for p in glob.glob(f"{root}/*/20*/*__*/result.json"):
+    r = json.load(open(p, encoding="utf-8"))
+    kind = (r.get("agent_info") or {}).get("name")  # "oracle" or "nop"; a job may hold both
+    if kind not in ("oracle", "nop"):
+        continue
+    task = (r.get("task_name") or "").split("/")[-1]
+    rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward")
+    res[task][kind].append(rw)
+    v = dur(r.get("verifier"))
+    if v is not None:
+        res[task]["verify"].append(v)
 
 print("| Task | Oracle (reference fix) | Nop (no change) | Grading time (s) | Reproducible |")
 print("|---|---|---|---|---|")
