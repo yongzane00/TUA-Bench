@@ -133,3 +133,6 @@ affected trials are listed; they are not dropped.
   holds. (3) The model aliases (`ANTHROPIC_DEFAULT_{SONNET,OPUS,HAIKU}_MODEL`, `CLAUDE_CODE_SUBAGENT_MODEL`) are set to
   qwen3.8 in the configs' env: Harbor sets them only when the proxy address comes from the shell environment, which
   the smoke runs used, and not when it comes from the config, which the batch uses. Batches 1 to 3 are unchanged.
+- 2026-11-12, before any trial of batch 4: a model request that fails (an HTTP error from the server) no longer
+  counts as a turn in the proxy's meter; its time goes into the turn of the agent's retry (harbor fork `bb0307c9`).
+  Before, a retry made the turns that fit read too high in the full arm. Batches 1 to 3 do not use the proxy.

@@ -473,6 +473,33 @@ route. A side request under a Claude model name would have reached vLLM, which s
 `subset/tools/proxy_report.py` now counts the lowered calls per trial (batch 4's new secondary; on the first two
 self-tests: 2 calls, in 2 of 2 trials).
 
+## Minimum engineering checks and handover package (plan p11; 2026-11-12)
+
+The plan lists eight checks the plugin must pass and eight items a handover must contain. Where each one stands:
+
+| Check (p11) | Evidence | State |
+|---|---|---|
+| Concurrent tasks isolated | Harbor agent: 3 concurrent scripted trials kept separate clocks; proxy: 2 Claude Code trials on one URL kept separate clocks (`--track-conversations`) | Passed |
+| Retry timing | v20: a failed model call is logged and counted (`failed_calls`) but is not a turn; its time goes into the turn of the retry. Before, the retry closed a turn of a few seconds and the meter showed the failure as the last reply, so the turns that fit read too high. Tests: plain loop, proxy with HTTP 500 and a retry (both fail on the old code). The Harbor agent retries inside one model call (LiteLLM), so its turns already included retries | Fixed in v20 |
+| Process recovery | `TimeBudget` state is a plain dict that resumes the same budget (test); proxy `--state-dir` keeps each run's budget across a proxy restart (test) | Passed (tests only) |
+| Long tool cancellation | Harbor agent: hard deadline waits (v2, v18) and Ctrl-C to the running command (v7); package: `TimeBudget.run` cancels a tool at the deadline; proxy: the agent's own tool timeout lowered to the time left (v19); launcher: the agent's process group (v16) | Passed (live checks) |
+| Tool failure | v20 test: a failing LangChain tool, sync and async: the error goes back to the model as the tool's result, logged with status `error`, the budget counts on | Passed (test) |
+| Saved deliverable when the budget runs out | `save_diff_of` (v3): `git diff` and status at the stop; live in every smoke run | Passed |
+| Complete tool-call protocol | Proxy: tool-call pieces held until whole, never half a call after a cut (tests in three formats, live with the openai SDK and Claude Code) | Passed |
+| Plugin off = baseline | H7 hidden sends exactly what stock terminus-2 sends (3 of 3 prompts) | Passed |
+| Acceptance tests cannot be replaced by the model | SWE-bench grading resets every test file the test patch touches to the base commit and applies the patch before running (`tests/test.sh`), so edits to those files are discarded; the tests directory enters the container only at grading | Holds for SWE-bench tasks; a business task needs the same reset |
+
+| Handover item (p11) | What exists | Missing |
+|---|---|---|
+| 1. Installable plugin, version locked | `packages/time-budget` (`pip install ./packages/time-budget[proxy,langchain]`); experiments pin by commit | The package version is still 0.1.0 (unchanged since v6); a release number per frozen batch |
+| 2. Harbor and framework examples | Harbor agent `terminus_2_harness7`; proxy configs for stock terminus-2 and Claude Code; LangChain `examples/live_smoke.py`; launcher for command-line agents | A business framework example (needs the partner team) |
+| 3. Budget, wrap-up and stop semantics | Package README (each part, settings, limits); `budget_meter.py` docstring for the Harbor agent | One page that states both side by side |
+| 4. Task and environment list | `pilot/tasks.md`, `pilot/excluded.md`, task images from SWE-bench | |
+| 5. One full success and one timeout trajectory | Candidates in the smoke jobs | Picked from batch 2 when it has run |
+| 6. Analysis scripts and configs | `plan_metrics.py`, `ablation_report.py`, `pilot/pilot_report.py`, `proxy_report.py`, `event_log.py`; all configs in the repo | |
+| 7. Real cost report | | Needs the hosted API batch (p9, the user's decision) or GPU-hour accounting for the shared server |
+| 8. Known failure modes, scope, how to turn it off | README "Limits"; feedback `hidden` or no plugin turns it off | One list with the failure modes seen in the runs |
+
 ## Ideas to test (new, beyond the plan)
 
 1. **Effort that follows the clock.** About four fifths of the time goes to waiting for the model. Near the
@@ -525,6 +552,7 @@ self-tests: 2 calls, in 2 of 2 trials).
 | v17 | harbor | `8f2ba7a1` | The proxy records each run's first user message (`first_user`) on its first request, so a run can be matched to its task. TUA-Bench `subset/tools/proxy_report.py` joins a proxy event log with the Harbor trials (matches, close calls, trials stopped by time, lateness after the deadline, replies); on the two Claude Code smoke jobs it matched 3 of 3 trials, lateness 0.5 s and 0.2 s. 43 of 43 tests |
 | v18 | harbor | `63217a11` | The Harbor agent's hard deadline waits for a reply or a command on the budget clock, re-read every 0.5 s, instead of one asyncio timeout on the event loop's clock (late under WSL with `clock: wall`). Live: work lateness 0.2 to 0.5 s, against 2.0 to 4.1 s before (3 trials each at 90 s). 35 of 35 budget tests, 64 of 64 terminus-2 tests. Not yet in the WSL copy (the ablation imports it) |
 | v19 | harbor | `8cee7b44` | Proxy and launcher `--cap-tool-timeout TOOL:FIELD:UNIT[:DEFAULT]` and `--cap-margin`: a tool call reaches the agent with its timeout no longer than the time left minus the margin (all three formats, streamed or not); later requests carry the model's own value back; `tool_capped` events. 50 of 50 package tests. Self-tests with Claude Code 2.1.322: the command is ended at the deadline only with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` |
+| v20 | harbor | `bb0307c9` | A failed model call is not a turn (plan p11 retry timing): counted in `failed_calls`, its time in the turn of the retry; tests for retries (loop and proxy) and a failing LangChain tool. 54 of 54 package tests |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -616,3 +644,8 @@ self-tests: 2 calls, in 2 of 2 trials).
   before any of its trials: cap and margin on both proxies, background tasks off, model aliases in the configs (the
   config route for the proxy address was used live for the first time here, and Harbor sets the aliases only on
   the shell route).
+- 2026-11-12 07:15: the gate still waits (2 to 4 requests from others). `proxy_report.py` counts lowered timeouts.
+  Went through the plan's minimum engineering checks and handover list (p11, section above): retry timing failed
+  (a failed model call counted as a turn), fixed in v20 with tests; tool failure now tested. Open handover items:
+  a package release number, one page on the stop semantics, the two example trajectories (from batch 2), a real
+  cost report (needs p9 or GPU-hour accounting), one list of failure modes.
