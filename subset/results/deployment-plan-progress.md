@@ -356,6 +356,7 @@ Live checks on qwen3.8-flash-next:
 | Harbor stock terminus-2, `django__django-11099` (`swe-smoke-proxy-stock-time300`) | 300 s, reserve 60 s | 6 replies, wrap-up notice at 203 s, task marked complete at 222 s, reward 1 |
 | Same (`swe-smoke-proxy-stock-time90`) | 90 s, reserve 30 s | Wrap-up notice at 75.8 s (14 s left); the agent marked the task complete; its confirmation reply was cut at 90.0 s and the stop reply (terminus-2's own JSON with `task_complete: true`) confirmed it; graded, reward 1 |
 | Harbor's Claude Code agent (unchanged, inside the task container), Anthropic messages format, streaming (`pilot/configs/smoke-proxy-claude-code.yaml`) | 300 s, reserve 60 s | 12 replies; wrap-up notice at 193 s (107 s left); the model wrote its answer at 288 s, its next reply was cut at 300.0 s, and Claude Code ended cleanly on the stop reply 0.2 s later; reward 1. No Anthropic API was called |
+| Same, 2 trials of the task at once on one base URL with no run id (`--track-conversations`, `-k 2 -n 2`) | 240 s each, reserve 60 s | The proxy found 2 runs, started 3.9 s apart, each matching one trial's own log: one had a 208.7 s first reply on the busy server, got the wrap-up notice at 208.9 s and was cut at 240.0 s; the other got the notice at 160.1 s and answered at 194 s. Reward 1 in both |
 
 The event log records the note each request added (for example `[Time 87 of 90 s, 3 s left | last reply 11 s at
 14 tok/s | about 0 turns fit]`), because the agent's own trajectory never shows what the proxy added.
@@ -440,7 +441,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | v11 | harbor | `920c6fd2` | The LangChain adapter becomes a thin layer over `TimeBudget`: one implementation of the timing, texts and stop for every framework. 22 of 22 tests; live check on qwen3.8 (normal finish, cut at 8.0 s) |
 | v12 | harbor | `efe819e2` | `time_budget.proxy`: the budget for an unchanged agent through its model base URL (meter per request, reply cut at the deadline, stop reply in the agent's own format, tool-call pieces held until a reply completes); `TimeBudget.run` re-reads the budget clock every 0.5 s instead of one asyncio timeout on the monotonic clock. 32 of 32 tests; live checks with LangChain and stock terminus-2 |
 | v13 | harbor | `3cb6ddda` | The proxy also edits the Anthropic messages format: Claude Code (Harbor's installed agent, unchanged) ran through it in the task container on qwen3.8, cut at 300.0 s, reward 1. 35 of 35 tests |
-| v14 | harbor | `5bae9619` | Proxy `--track-conversations`: requests without a run id are sorted into runs by the history they resend, so concurrent trials that share one base URL keep separate clocks. 37 of 37 tests; live check waits for a time the ablation is not waiting on a quiet server |
+| v14 | harbor | `5bae9619` | Proxy `--track-conversations`: requests without a run id are sorted into runs by the history they resend, so concurrent trials that share one base URL keep separate clocks. 37 of 37 tests; live check passed (2 concurrent Claude Code trials on one URL, separate clocks) |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -452,6 +453,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | `abl38` | I0 `harness0-time2400-rounds3`, I1 `harness7-time2400-once-rounds3`, I2 `harness7-time2400-clock-rounds3`, I3 `harness7-time2400-rounds3`; 3 rounds of 40 trials per arm | Waiting since 2026-11-11 09:58 for 10 quiet minutes (3 requests from others running) |
 | `smoke` + `tbproxy` | Stock terminus-2 through the budget proxy: `swe-smoke-proxy-stock-time300/2026-11-11__22-00-45`, `swe-smoke-proxy-stock-time90/2026-11-11__22-07-49` (1 trial each; proxy event logs in `~/work/proxy-smoke/`) | Done: reward 1 in both |
 | `smoke` + `tbproxy` | Harbor's claude-code agent through the proxy: `smoke-proxy-claude-code/2026-11-11__23-01-37` (1 trial); `2026-11-11__22-49-37` was stopped (wrong proxy address) and is not used | Done: reward 1 |
+| `smoke` + `tbproxy` | 2 Claude Code trials at once through one proxy URL: `smoke-proxy-claude-code/2026-11-12__00-18-33` | Done: separate clocks, reward 1 in both |
 
 ## Log
 
@@ -494,3 +496,5 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   proxy now sorts requests into runs by conversation. Its live check (2 Claude Code trials at once) was held back:
   at 23:42 the server read 0 requests for the first time since the afternoon, and the ablation gate gets that
   window first.
+- 2026-11-12 00:18: the server was busy again (3 to 4 requests from others), so the held check ran: 2 Claude Code
+  trials at once on one proxy URL kept separate clocks (`smoke-proxy-claude-code/2026-11-12__00-18-33`).
