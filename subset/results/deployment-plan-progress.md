@@ -550,3 +550,8 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   (the reports, then the commands and outputs, with meter lines and wrap-up notices removed so the arm does not
   show; ids random, the key kept apart). Checked on the three smoke runs: the 75 s run's delivery lateness reads
   2.0 s, as measured live.
+- 2026-11-12 03:50: `ablation_report.py` reads Claude Code trials (3 of 3 smoke trials, paired gap computed), so batch
+  4's primary comparison needs no new tool. Two of its columns do not apply there: "$ per solved" comes from Claude
+  Code's own cost field, which prices the unknown model at Anthropic rates ($0.65 per solved on qwen3.8, meaningless),
+  and "ended by time" reads the Harbor agent's stop flag; batch 4 takes trials stopped by time from
+  `proxy_report.py`.
