@@ -3,6 +3,7 @@
 #   n_attempts = 3
 #   n_concurrent_trials = 1
 #   agents.0.name = null
+#   agents.0.kwargs.api_base = http://<qwen38-vllm-host-2>:8000/v1
 #   agents.0.import_path = harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7
 #   agents.0.kwargs.time_budget_sec = 2400
 #   agents.0.kwargs.feedback = once
@@ -57,7 +58,7 @@ agents:
 - name: null
   model_name: openai/qwen3.8-flash-next
   kwargs:
-    api_base: http://<qwen38-vllm-host>:8000/v1
+    api_base: http://<qwen38-vllm-host-2>:8000/v1
     temperature: 0.7
     reasoning_effort: xhigh
     max_turns: null
