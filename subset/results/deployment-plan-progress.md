@@ -17,7 +17,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Cost per qualified delivery, empty-handed timeouts (p7) | same | Done for both models |
 | Week-1 items for the next group meeting (p11): task contract, 10 reproducible tasks, data split, budget and logging spec, first configs | `pilot/README.md` (contract, budget, logging), `pilot/tasks.md` (split), `pilot/configs/oracle-week1.yaml` | Contract, split, spec and configs written; oracle check of the 10 tasks running (tmux `pilot`) |
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | `subset/tools/event_log.py`: one JSON line per model call, command batch, stop and grading | Done; tested on a pilot smoke trial and a TUA trial |
-| Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; live check on qwen3.8 passed (wrap-up notice, cut at 20.0 s; the server drops a cancelled reply within 0.5 s) |
+| Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; live check on qwen3.8 passed (wrap-up notice, cut at 20.0 s; the server drops a cancelled reply within 0.5 s). Since v12 also a proxy for agents that cannot be changed: stock terminus-2 in Harbor ran through it with no code change (reward 1 at 300 s and at 90 s, cut at 90.0 s) |
 | Hosted API replication (p9) | | Needs money: ask the user |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
 | Held-out 80 TUA tasks, full 120 (p6) | | After the configuration is locked |
@@ -339,6 +339,49 @@ non-streaming requests raised the server's running count from 3 to 6; after the 
 read 3 again at 8.8 s and stayed there. So on vLLM the hard deadline also frees the shared server instead of leaving
 an orphaned generation. Hosted APIs were not checked and may still bill the cut tokens.
 
+## Any agent through its base URL: the budget proxy (plan p3; 2026-11-11)
+
+The adapters so far need code in the agent (a few `TimeBudget` calls, or LangChain middleware). Most agent
+harnesses, though, already let the user set the model server's address. `time_budget.proxy` (harbor fork, v12) is a
+small web server placed at that address: it adds the budget sentence and the per-turn meter to each request, times
+each reply, and cuts the reply still running at the deadline, then passes the request on to the real server. The
+agent's code and logs are untouched. One clock per run id in the URL (`/run/<id>/v1`).
+
+Live checks on qwen3.8-flash-next:
+
+| Agent | Budget | Result |
+|---|---|---|
+| LangChain `create_agent`, no middleware, streaming | 90 s, reserve 60 s | Wrap-up notice at 19.0 s; answer at 38.2 s; 0 meter lines left in the history |
+| Same | 20 s, effort xhigh, 3 runs | Cut at 20.0 s in 3 of 3; each ended on the stop reply |
+| Harbor stock terminus-2, `django__django-11099` (`swe-smoke-proxy-stock-time300`) | 300 s, reserve 60 s | 6 replies, wrap-up notice at 203 s, task marked complete at 222 s, reward 1 |
+| Same (`swe-smoke-proxy-stock-time90`) | 90 s, reserve 30 s | Wrap-up notice at 75.8 s (14 s left); the agent marked the task complete; its confirmation reply was cut at 90.0 s and the stop reply (terminus-2's own JSON with `task_complete: true`) confirmed it; graded, reward 1 |
+
+The event log records the note each request added (for example `[Time 87 of 90 s, 3 s left | last reply 11 s at
+14 tok/s | about 0 turns fit]`), because the agent's own trajectory never shows what the proxy added.
+
+What the proxy cannot do: it sees model calls only, so tool calls are timed inside the turn, not one by one, and it
+cannot stop a command the agent is running. An agent that raises on an error needs the stop reply in its own answer
+format: Harbor skips grading when terminus-2 raises anything but a timeout, so the stop reply there is a
+`task_complete` JSON, sent up to 2 times (terminus-2 asks to confirm).
+
+**Two fixes found by the live checks.**
+
+1. **The deadline ran on the wrong clock.** The first 20 s run was cut at 21.6 s, and a 12 s one at 13.6 s.
+   `asyncio.wait_for` times out on the event loop's monotonic clock, which runs slower than the wall clock under
+   WSL (section "Clock drift"). `TimeBudget.run` now waits in 0.5 s slices and re-reads the budget clock;
+   after the change, 3 of 3 runs were cut at 20.0 s. The lateness came and went before the change: of 5 cuts, 3
+   were 1.6 s late (a 20 s budget once, 12 s twice) and 2 were on time (8 s and 20 s).
+2. **Half a tool call.** In the 21.6 s run the agent sent a request after the cut and got HTTP 400. The likely
+   cause (not confirmed) is a stream cut inside a tool call, which leaves the agent half a tool call to run.
+   Tool-call pieces are now held until the reply is complete; the 3 later runs ended cleanly.
+
+**The Harbor agent has the same clock problem (to fix before pilot batch 2).** `budget_meter.py:457` cuts a reply
+with `asyncio.wait_for(..., timeout=left)`, so with `clock: wall` the cut is late by the drift: up to about 8 of
+every 100 s still left when the reply started. The earlier live checks fit this (77.0 s on a 75 s budget; 21.7 s on
+20 s). The ablation arms do not use the hard deadline, but they import this file, so it stays unchanged until the
+ablation ends. Then the same slicing goes in (as part of moving the agent onto the shared core), with a change entry
+in the analysis plan, before the pilot batch, whose lateness target (P95 within 5 s) depends on it.
+
 ## Ideas to test (new, beyond the plan)
 
 1. **Effort that follows the clock.** About four fifths of the time goes to waiting for the model. Near the
@@ -376,6 +419,7 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
 | v9 | harbor | `0576eec9` | Plugin parity (the user's goal: one plugin for every agent harness): the core gains the report request and stop timing; the LangChain adapter gains `report_request`, an end-of-run hook with stop and cleanup times and an `on_stop` callback for the application's own cleanup; README table of features per framework. 15 of 15 package tests. The Harbor agent is not changed until the running experiments finish |
 | v10 | harbor | `5bf7ae17` | `TimeBudget`: the budget for any agent loop without a framework (instructions, meter before each call, timed and deadline-cancelled model and tool calls, cleanup hook, resumable plain-dict state). 22 of 22 package tests |
 | v11 | harbor | `920c6fd2` | The LangChain adapter becomes a thin layer over `TimeBudget`: one implementation of the timing, texts and stop for every framework. 22 of 22 tests; live check on qwen3.8 (normal finish, cut at 8.0 s) |
+| v12 | harbor | `efe819e2` | `time_budget.proxy`: the budget for an unchanged agent through its model base URL (meter per request, reply cut at the deadline, stop reply in the agent's own format, tool-call pieces held until a reply completes); `TimeBudget.run` re-reads the budget clock every 0.5 s instead of one asyncio timeout on the monotonic clock. 32 of 32 tests; live checks with LangChain and stock terminus-2 |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -385,6 +429,7 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
 |---|---|---|
 | `abl38` (first launch) | `-attempt3` configs | Started 09:40, stopped 09:53 on 2026-11-11 because the server was busy; the four partial job folders under `jobs/qwen38-flash-next/*-attempt3/` are left as they are and are not used |
 | `abl38` | I0 `harness0-time2400-rounds3`, I1 `harness7-time2400-once-rounds3`, I2 `harness7-time2400-clock-rounds3`, I3 `harness7-time2400-rounds3`; 3 rounds of 40 trials per arm | Waiting since 2026-11-11 09:58 for 10 quiet minutes (3 requests from others running) |
+| `smoke` + `tbproxy` | Stock terminus-2 through the budget proxy: `swe-smoke-proxy-stock-time300/2026-11-11__22-00-45`, `swe-smoke-proxy-stock-time90/2026-11-11__22-07-49` (1 trial each; proxy event logs in `~/work/proxy-smoke/`) | Done: reward 1 in both |
 
 ## Log
 
@@ -415,3 +460,7 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
   the Harbor agent moves onto the shared core after the ablation, so the evaluated runs stay byte-identical.
   `TimeBudget` (v10): a few calls in any agent loop give the same budget without a framework adapter.
   v11: LangChain adapter rebuilt on `TimeBudget`, so the package has one implementation.
+- 2026-11-11 evening: still no quiet 10 minutes (2 to 4 requests from others at 21:40 to 22:11). v12: the budget
+  proxy, checked live with an unmodified LangChain agent and with Harbor's stock terminus-2 (2 smoke trials, reward 1
+  each, the 90 s one cut at 90.0 s and graded). The live checks found the deadline running on the monotonic clock
+  (1.6 s late in 3 of 5 cuts); fixed in the package; the same fix is due in the Harbor agent after the ablation.
