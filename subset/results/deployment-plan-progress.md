@@ -140,6 +140,31 @@ resamples. The plan's 3 rounds will most likely leave I1 and I2 "uncertain". The
 (`subset/results/analysis-plan.md`, commit `bf1f151`, 11:42, before any ablation trial) therefore fixes rounds 4 and 5
 in advance and states every decision rule.
 
+## Quiet-start gate: what each rule costs (2026-11-12)
+
+The ablation has waited since 2026-11-11 09:58 for 10 minutes with no request from anyone. `subset/tools/gate_options.py`
+reads vllmtop's per-second samples of the server for the last 7 days (95 of 100 seconds sampled):
+
+| Rule: start when other users' requests are at most k for 10 minutes | Openings in 7 days | Wait from a random moment, median | Moments that waited more than 12 h |
+|---|---|---|---|
+| k = 0 (the current gate) | 23 | 12.6 h | 4940 of 9615 |
+| k = 1 | 70 | 4.4 h | 2801 of 9615 |
+| k = 2 | 197 | 0.6 h | 406 of 9615 |
+
+| Requests running | Decode speed per request, median (tok/s) | Against 4 running |
+|---|---|---|
+| 4 (the ablation alone) | 17 | 1.00 x |
+| 5 | 15 | 0.90 x |
+| 6 | 18 | 1.08 x (778 seconds only) |
+
+A round lasts about 15 h (40 trials per arm in a row at 22.6 min each, from the finished 2400 s runs), so the start
+rule governs only the first minutes of a round; the load during the round is whatever the other users bring, and
+batch 1 already plans a sensitivity analysis on trials run while other users' load was below 0.5. The four arms run
+side by side, so any load slows all of them alike. Waiting for k = 0 costs a median 12.6 h per round; k = 2 cuts
+that to 0.6 h for about 10 % slower replies per extra request at the start. Changing the rule changes a frozen
+protocol item (batch 1, Size), so it is the user's decision; recommendation: k = 2, recorded in the analysis plan as
+a change before round 1.
+
 ## Clock drift (validity check)
 
 The budget and Harbor's own agent limit run on the monotonic clock, which inside WSL runs slow against real time.
@@ -505,3 +530,6 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   (Claude Code), hidden vs full on the 20 dev tasks, decision on the full - hidden gap; configs load in Harbor.
 - 2026-11-12 01:00: v15, the responses format in the proxy; checked live with the openai SDK while the server was
   busy (3 requests from others).
+- 2026-11-12 01:40: the gate has waited 15.5 h. Measured what each start rule costs (section "Quiet-start gate"):
+  at most 2 other requests would have opened 197 times in 7 days (median wait 0.6 h) against 23 for the current
+  rule (12.6 h); put to the user as a recommendation.
