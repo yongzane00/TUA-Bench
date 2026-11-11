@@ -374,6 +374,7 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
 | v8 | harbor | `6382238d` | `report_request`: the contract's report asked for in every arm. 32 of 32 tests |
 | v8 | TUA-Bench | `f107f6e` | `report_request` on in the seven pilot configs; report check and condition (d) in the analysis plan; report in the event log; live check |
 | v9 | harbor | `0576eec9` | Plugin parity (the user's goal: one plugin for every agent harness): the core gains the report request and stop timing; the LangChain adapter gains `report_request`, an end-of-run hook with stop and cleanup times and an `on_stop` callback for the application's own cleanup; README table of features per framework. 15 of 15 package tests. The Harbor agent is not changed until the running experiments finish |
+| v10 | harbor | `5bf7ae17` | `TimeBudget`: the budget for any agent loop without a framework (instructions, meter before each call, timed and deadline-cancelled model and tool calls, cleanup hook, resumable plain-dict state). 22 of 22 package tests |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -411,3 +412,4 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
   run external project code in Docker.
   Plugin parity (v9): the LangChain adapter now has the report request, stop timing and a cleanup hook;
   the Harbor agent moves onto the shared core after the ablation, so the evaluated runs stay byte-identical.
+  `TimeBudget` (v10): a few calls in any agent loop give the same budget without a framework adapter.
