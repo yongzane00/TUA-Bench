@@ -213,6 +213,40 @@ and fits solved = task fixed effects + shown + z + shown x z, bootstrap over tas
   The plan's +20 s per reply adds about 60% to a median reply, about six times the natural spread. So the injected
   delay arm is still needed; this check only says the effect does not show up within the natural range.
 
+## Turn forecast and wrap-up reserve (plan p4, 2026-11-11)
+
+The meter's "turns that fit" and the wrap-up trigger (time left <= recent turn + reserve) both use the mean of the
+last 3 turns. `subset/tools/turn_forecast.py` scores it against other forecasters on every turn after the third in the
+finished qwen3.8 runs (17655 turns; turn length median 51 s, P90 151 s), using only earlier turns of the same trial:
+
+| Forecaster | Median abs. error (s) | Turn ran > 30 s past the forecast |
+|---|---|---|
+| mean of last 3 (in use) | 27 | 3650 of 17655 |
+| last turn | 25 | 3869 of 17655 |
+| median of last 5 | 25 | 4358 of 17655 |
+| longest of last 3 | 40 | 2107 of 17655 |
+| 80th percentile of all earlier turns | 31 | 3422 of 17655 |
+| same command class (install, build, test, other) | 28 | 4437 of 17655 |
+
+No forecaster predicts a single turn well: the error is about half a median turn whichever is used. The command-class
+forecast (idea 3 below) is worse than the plain mean, so it is dropped. What matters for the wrap-up is the time set
+aside for one more turn:
+
+| Rule | Next turn finished inside it | Mean time set aside (s) |
+|---|---|---|
+| mean of last 3 + 60 s | 15671 of 17655 | 139 |
+| mean of last 3 + 120 s (pilot setting) | 16856 of 17655 | 199 |
+| longest of last 3 + 60 s | 16502 of 17655 | 181 |
+| longest of last 3 + 120 s | 17128 of 17655 | 241 |
+| mean of last 3 + 2 x SD of last 5 + 30 s | 16405 of 17655 | 189 |
+| 2 x mean of last 3 + 30 s | 16540 of 17655 | 187 |
+| 3 x mean of last 3 | 16864 of 17655 | 236 |
+
+The rule in use, mean plus a fixed reserve, is as good as the adaptive ones for the time it sets aside: the
+scaled and spread-based rules cover fewer turns at about the same cost, and 3 x mean covers the same as mean + 120 s
+for 37 s more. With 120 s, about 19 in 20 next turns fit (16856 of 17655), the same reserve the pilot's grading-time
+P90 suggested. No code change.
+
 ## LangChain adapter on a live model (2026-11-11)
 
 `packages/time-budget/examples/live_smoke.py` (harbor fork) ran `TimeBudgetMiddleware` in a real `create_agent` loop
@@ -241,7 +275,8 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
    dose-response check of H1 before paying for injected delays. Done (section above): no dose-response within the
    natural +-10% speed range, which is too narrow to replace the injected +5 s / +20 s arms.
 3. **Turn-length forecast by command type** (plan p4): keep durations per command class (install, build, test,
-   GUI action) instead of the mean of the last 3 turns.
+   GUI action) instead of the mean of the last 3 turns. Checked on 17655 turns: worse than the plain mean (late
+   turns 4437 vs 3650 of 17655); dropped (section "Turn forecast and wrap-up reserve").
 
 ## Versions
 
@@ -281,4 +316,5 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
 - 2026-11-11 afternoon: still no quiet 10 minutes (the last was 2026-11-10 19:03; 13 of the last 14 days had at
   least one). Checks on finished runs while waiting: no filler actions near the deadline; no dose-response of the
   clock gap to natural speed (range too narrow to replace the latency arm). LangChain adapter checked live; vLLM
-  drops cancelled replies.
+  drops cancelled replies. Turn forecast checked: the mean of the last 3 turns plus a fixed reserve is as good
+  as the adaptive rules tried; 120 s covers 16856 of 17655 next turns.
