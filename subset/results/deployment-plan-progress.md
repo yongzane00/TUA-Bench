@@ -16,7 +16,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Paired task-level bootstrap, decision routes A and B (p7) | `subset/tools/plan_metrics.py` | Done for both models |
 | Cost per qualified delivery, empty-handed timeouts (p7) | same | Done for both models |
 | Week-1 items for the next group meeting (p11): task contract, 10 reproducible tasks, data split, budget and logging spec, first configs | `pilot/README.md` (contract, budget, logging), `pilot/tasks.md` (split), `pilot/configs/oracle-week1.yaml` | Contract, split, spec and configs written; oracle check of the 10 tasks running (tmux `pilot`) |
-| Event log with run_id, task_id, phase, remaining budget, ... (p11) | | Later |
+| Event log with run_id, task_id, phase, remaining budget, ... (p11) | `subset/tools/event_log.py`: one JSON line per model call, command batch, stop and grading | Done; tested on a pilot smoke trial and a TUA trial |
 | Framework middleware + LangChain adapter (p3) | | Later |
 | Hosted API replication (p9) | | Needs money: ask the user |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
@@ -111,10 +111,23 @@ minutes with no requests from anyone; trials can later be tagged with the load d
 
 A task is reproducible only when the oracle (reference fix) scores 1 and Harbor's nop agent (no change) scores 0
 (`pilot/check_tasks.py jobs/pilot`). The nop check was added after a smoke trial scored 1 on
-`django__django-7530` without changing any file: its one FAIL_TO_PASS test already passes on the untouched repo. So
-far `django__django-10097` also fails, the other way: the reference fix scores 0 (438 required tests, 475 s to grade).
-Both will be excluded and replaced by the next oldest candidates once the oracle and nop runs finish. Grading time so
-far: median 34 s; most tasks 22 to 34 s, two at 102 and 125 s.
+`django__django-7530` without changing any file: its one FAIL_TO_PASS test already passes on the untouched repo.
+`django__django-10097` fails the other way: the reference fix scores 0 (438 required tests, 475 s to grade). Of the
+first 20 dev tasks, 12 were confirmed and 6 were waiting for the oracle at 10:40; these two are the only failures.
+Both are listed in `pilot/excluded.md`; the selection rule then took `django__django-11265` and `-11276` into dev
+(being checked) and moved 3 held-out tasks by the same file rule. Grading time over 44 trials: median 40 s, P90
+102 s, which supports the plan's 120 s wrap-up reserve (P90 rounded up to the next 30 s).
+
+## Clock drift (validity check)
+
+The budget and Harbor's own agent limit run on the monotonic clock, which inside WSL runs slow against real time.
+Real seconds per 2400 harness seconds (median per run): 1800 s pair 2519 hidden / 2414 shown; 2400 s pair 2578 /
+2483; 3600 s pair 2408 / 2485. At 1800 and 2400 s the hidden arm got more real time, which works against the shown
+arm. At 3600 s the shown arm got about 3 in 100 more (about 106 s per hour); the hidden arm gains only +8 of 200
+from 3600 s to 12000 s, so 106 s cannot explain +17. For a deadline promised to a person the clock must be real
+time: v5 adds `clock: wall`, used by the pilot configs. `subset/tools/event_log.py` scales real time to the budget's
+clock per trial, so its `budget_left_s` matches the stop (checked: a 2400 s trial killed at 2506 real seconds shows
+2400.0 on the budget clock).
 
 ## Ideas to test (new, beyond the plan)
 
@@ -140,6 +153,9 @@ far: median 34 s; most tasks 22 to 34 s, two at 102 and 125 s.
 | v3 | harbor | `397eb68e`, `2c6683db` | `save_diff_of`: saves `git diff` and status of the deliverable at the stop. 20 of 20 tests |
 | v4 | harbor | `bb354b2b` | `late_effort`: lower reasoning effort near the deadline. 22 of 22 tests |
 | v4 | TUA-Bench | `ad0bbec` | `pilot/check_tasks.py`, nop config, two smoke configs, `subset/tools/ablation_report.py` |
+| v5 | harbor | `dfa93a21` | `clock: wall`: budget in real time. 24 of 24 tests |
+| v5 | TUA-Bench | `e73285c` | `subset/tools/event_log.py`; oracle config for dev tasks 11 to 20 |
+| v6 | TUA-Bench | `f5f9c4f` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
 ## Runs
@@ -156,3 +172,6 @@ far: median 34 s; most tasks 22 to 34 s, two at 102 and 125 s.
   folder with the week-1 items; oracle check started (no model calls). Smoke trials confirmed the hard deadline
   and diff saving live; nop check added after a task passed with no change; late-effort setting added (v4). The
   qwen3.8 server had 2 to 4 requests from other users running all morning, so ablation round 1 has not started.
+  Later: nop check done, two broken tasks excluded and replaced; clock drift measured and `clock: wall` added (v5);
+  event log converter; pilot batch configs ready. Run order on the server: ablation first (plan week 3), then the
+  pilot batch (week 4), each in quiet-start rounds, never both at once.
