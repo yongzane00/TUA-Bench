@@ -41,12 +41,15 @@ rounds.
 | Size | 3 rounds of 20 tasks per arm (60 trials per arm), arms side by side, quiet-start rounds; run after batch 1 |
 | Primary metric | Qualified deliveries: reward 1, x of 60 |
 | Outcome states | Qualified (reward 1); partial (reward below 1, non-empty saved diff); failed (empty diff or an error) |
-| Secondary | $ per qualified delivery; wrong declarations (declared complete, not qualified); lateness past the deadline on the real-time clock, P95, in two forms: delivery lateness `elapsed_sec` - 900 (work stopped, terminal cleaned, diff saved) and work lateness `stopped_at_sec` - 900; trials whose stop left a foreground process running (`stop_interrupt.stopped` false) |
+| Secondary | $ per qualified delivery; wrong declarations (declared complete, not qualified); lateness past the deadline on the real-time clock, P95, in two forms: delivery lateness `elapsed_sec` - 900 (work stopped, terminal cleaned, diff saved) and work lateness `stopped_at_sec` - 900; trials whose stop left a foreground process running (`stop_interrupt.stopped` false); false verification claims (below) |
+| Report check | Every trial that declared completion ends with a report (`report_request`: checks run and their results, what changed, what is unverified). A reviewer who does not see the arm compares the report with the commands and outputs in the trajectory; a **false verification claim** is a report that states a check the trajectory does not show (a test never run, or a failure reported as a pass). Passing its own tests while the hidden grading tests fail is not a false claim. Counted per arm, x of the trials that declared completion |
 | Comparison | Same paired bootstrap over the 20 tasks |
 
 **Decision (the plan's week-4 gate).** The wrap-up arm is kept only if (a) its qualified gap against the full arm
 has a lower bound above -3 of 60, (b) it does not have more wrong declarations than the full arm, and (c) its point
-estimate is not below the full arm's. Otherwise the full arm stays the default and the wrap-up notice stays off.
+estimate is not below the full arm's, and (d) it does not have more false verification claims than the full arm (the
+plan's week-4 condition: P must not add false success reports or missing checks). Otherwise the full arm stays the
+default and the wrap-up notice stays off.
 Timeliness target: P95 lateness at most 5 s in every arm.
 
 ## Batch 3: latency intervention (plan p5, p6 "延迟机制"), added 2026-11-11 before any of its trials
@@ -86,3 +89,7 @@ reference from batch 2 stays valid.
   in every arm (plan p4: at the deadline, cancel local processes and check they exited; p11: long tool cancellation).
   Without it a command cut by the hard deadline kept running while the verifier graded. Lateness is defined in two
   forms (batch 2, Secondary). Batch 1 is unchanged.
+- 2026-11-11, before any trial of batches 2 and 3: `report_request: true` added to all seven pilot configs, the same in
+  every arm. The task text now asks for the contract's report (plan p2: tests run and their real results, a short fix
+  note, what is unverified), which the SWE-bench task text does not contain. Added the report check and condition
+  (d) to batch 2, from the plan's week-4 condition (p8). Batch 1 is unchanged.

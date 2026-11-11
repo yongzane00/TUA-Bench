@@ -15,7 +15,8 @@ Events per trial:
   commands      what the agent typed after that reply (keystrokes, requested waits); ends at the step's end
   agent_end     exit_reason (budget stop, Harbor timeout, completion), replies cut, waits cut, artifact path,
                 when the work stopped and how long the stop's cleanup took, and the local-process check
-                (interrupt_at_stop: foreground process left running or not)
+                (interrupt_at_stop: foreground process left running or not), and the agent's final report:
+                its message in the last reply that declared the task complete (null if it never did)
   verify        grading phase with the reward (the acceptance result)
 The trajectory records one timestamp per step, at the end of the turn; reply durations come from
 api_request_times_msec in the same order, so a turn splits into the reply and the commands that followed. Replies
@@ -76,6 +77,7 @@ def trial_events(tdir):
     req = md.get("api_request_times_msec") or []
     prev = t0
     k = 0
+    report = None  # the agent's message in its last reply that declared the task complete
     for s in steps:
         end = ts(s["timestamp"]) if s.get("timestamp") else None
         if s.get("source") != "agent" or end is None:
@@ -93,6 +95,8 @@ def trial_events(tdir):
         keys = [((c.get("arguments") or {}).get("keystrokes") or "")[:120] for c in calls
                 if c.get("function_name") != "mark_task_complete"]
         waits = sum(float((c.get("arguments") or {}).get("duration") or 0) for c in calls)
+        if any(c.get("function_name") == "mark_task_complete" for c in calls):
+            report = (s.get("message") or "")[:4000]
         out.append(ev("commands", reply_end, end, n_commands=len(keys), keystrokes=keys,
                       requested_wait_s=round(waits, 1),
                       declared_complete=any(c.get("function_name") == "mark_task_complete" for c in calls)))
@@ -107,7 +111,8 @@ def trial_events(tdir):
                       wrapup_at_s=wrap, effort_switched_at_s=bud.get("effort_switched_at_sec"),
                       artifact=diff.replace("\\", "/") if os.path.exists(diff) else None,
                       final_diff=bud.get("final_diff"), stopped_at_s=bud.get("stopped_at_sec"),
-                      cleanup_s=bud.get("cleanup_sec"), local_stop=bud.get("stop_interrupt")))
+                      cleanup_s=bud.get("cleanup_sec"), local_stop=bud.get("stop_interrupt"),
+                      report_requested=bud.get("report_request"), report=report))
     v = r.get("verifier") or {}
     if v.get("started_at") and v.get("finished_at"):
         rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward")
