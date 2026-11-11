@@ -1,0 +1,21 @@
+# Harbor's Claude Code agent (unchanged) on qwen3.8-flash-next through the time-budget proxy, Anthropic messages
+# format. Claude Code runs inside the task container; with Docker Desktop the container reaches the proxy (listening
+# on 127.0.0.1 in WSL) as host.docker.internal, through Windows' localhost forwarding; the WSL eth0 address does not
+# answer from a container. No Anthropic API is called: ANTHROPIC_BASE_URL points at the proxy, which forwards to the
+# vLLM server.
+#
+#   cd ~/work/harbor && uv run --no-project --with aiohttp --with-editable ./packages/time-budget \
+#       python -m time_budget.proxy --upstream http://<qwen38-vllm-host-2>:8000/v1 --budget 300 --reserve 60 \
+#       --port 8900 --events ~/work/proxy-smoke/events-cc.jsonl
+#   cd ~/work/TUA-Bench && ANTHROPIC_BASE_URL=http://host.docker.internal:8900/run/cc-smoke-2 ANTHROPIC_API_KEY=EMPTY \
+#       uv run --no-sync harbor run -c pilot/configs/smoke-proxy-claude-code.yaml \
+#       -o <TUA-Bench on C:>/jobs/qwen38-flash-next/smoke-proxy-claude-code --yes
+n_attempts: 1
+n_concurrent_trials: 1
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-11099
+agents:
+- name: claude-code
+  model_name: qwen3.8-flash-next

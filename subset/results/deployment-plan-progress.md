@@ -355,9 +355,21 @@ Live checks on qwen3.8-flash-next:
 | Same | 20 s, effort xhigh, 3 runs | Cut at 20.0 s in 3 of 3; each ended on the stop reply |
 | Harbor stock terminus-2, `django__django-11099` (`swe-smoke-proxy-stock-time300`) | 300 s, reserve 60 s | 6 replies, wrap-up notice at 203 s, task marked complete at 222 s, reward 1 |
 | Same (`swe-smoke-proxy-stock-time90`) | 90 s, reserve 30 s | Wrap-up notice at 75.8 s (14 s left); the agent marked the task complete; its confirmation reply was cut at 90.0 s and the stop reply (terminus-2's own JSON with `task_complete: true`) confirmed it; graded, reward 1 |
+| Harbor's Claude Code agent (unchanged, inside the task container), Anthropic messages format, streaming (`pilot/configs/smoke-proxy-claude-code.yaml`) | 300 s, reserve 60 s | 12 replies; wrap-up notice at 193 s (107 s left); the model wrote its answer at 288 s, its next reply was cut at 300.0 s, and Claude Code ended cleanly on the stop reply 0.2 s later; reward 1. No Anthropic API was called |
 
 The event log records the note each request added (for example `[Time 87 of 90 s, 3 s left | last reply 11 s at
 14 tok/s | about 0 turns fit]`), because the agent's own trajectory never shows what the proxy added.
+
+Since v13 the proxy also edits the Anthropic messages format (`/v1/messages`), so Claude Code and other Anthropic
+clients take it through `ANTHROPIC_BASE_URL`; vLLM serves that format too. Claude Code runs inside the task
+container: with Docker Desktop the container reaches a proxy on WSL's 127.0.0.1 as `host.docker.internal`, but not
+at the WSL eth0 address. The first attempt used that address, and Claude Code retried with no answer until it was
+stopped (`smoke-proxy-claude-code/2026-11-11__22-49-37`, not used).
+
+**After the wrap-up notice the model kept working.** In the Claude Code run the notice went out at 193 s; the
+model then sent 7 more replies (the last one cut at the deadline). The turn forecast swung with them: "about 1 turn fit" at 205 s and 212 s, then
+"about 9 turns fit" at 219 s, after three short turns (7 to 11 s) pulled the 3-turn mean down. A model reading
+"9 turns fit" right after a wrap-up notice gets mixed signals. Idea 4 below.
 
 What the proxy cannot do: it sees model calls only, so tool calls are timed inside the turn, not one by one, and it
 cannot stop a command the agent is running. An agent that raises on an error needs the stop reply in its own answer
@@ -396,6 +408,10 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 3. **Turn-length forecast by command type** (plan p4): keep durations per command class (install, build, test,
    GUI action) instead of the mean of the last 3 turns. Checked on 17655 turns: worse than the plain mean (late
    turns 4437 vs 3650 of 17655); dropped (section "Turn forecast and wrap-up reserve").
+4. **A forecast that does not swing back up after the wrap-up notice.** Once the notice is out, show the turns that
+   fit at the slowest of the recent turns (or drop the count), so short checking turns do not turn "1 turn fits"
+   into "9 turns fit" (seen in the Claude Code proxy run). Check on the finished wrap-up arm before changing it:
+   how often the count rises after the notice, and whether those trials overran.
 
 ## Versions
 
@@ -420,6 +436,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | v10 | harbor | `5bf7ae17` | `TimeBudget`: the budget for any agent loop without a framework (instructions, meter before each call, timed and deadline-cancelled model and tool calls, cleanup hook, resumable plain-dict state). 22 of 22 package tests |
 | v11 | harbor | `920c6fd2` | The LangChain adapter becomes a thin layer over `TimeBudget`: one implementation of the timing, texts and stop for every framework. 22 of 22 tests; live check on qwen3.8 (normal finish, cut at 8.0 s) |
 | v12 | harbor | `efe819e2` | `time_budget.proxy`: the budget for an unchanged agent through its model base URL (meter per request, reply cut at the deadline, stop reply in the agent's own format, tool-call pieces held until a reply completes); `TimeBudget.run` re-reads the budget clock every 0.5 s instead of one asyncio timeout on the monotonic clock. 32 of 32 tests; live checks with LangChain and stock terminus-2 |
+| v13 | harbor | `3cb6ddda` | The proxy also edits the Anthropic messages format: Claude Code (Harbor's installed agent, unchanged) ran through it in the task container on qwen3.8, cut at 300.0 s, reward 1. 35 of 35 tests |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -430,6 +447,7 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 | `abl38` (first launch) | `-attempt3` configs | Started 09:40, stopped 09:53 on 2026-11-11 because the server was busy; the four partial job folders under `jobs/qwen38-flash-next/*-attempt3/` are left as they are and are not used |
 | `abl38` | I0 `harness0-time2400-rounds3`, I1 `harness7-time2400-once-rounds3`, I2 `harness7-time2400-clock-rounds3`, I3 `harness7-time2400-rounds3`; 3 rounds of 40 trials per arm | Waiting since 2026-11-11 09:58 for 10 quiet minutes (3 requests from others running) |
 | `smoke` + `tbproxy` | Stock terminus-2 through the budget proxy: `swe-smoke-proxy-stock-time300/2026-11-11__22-00-45`, `swe-smoke-proxy-stock-time90/2026-11-11__22-07-49` (1 trial each; proxy event logs in `~/work/proxy-smoke/`) | Done: reward 1 in both |
+| `smoke` + `tbproxy` | Harbor's claude-code agent through the proxy: `smoke-proxy-claude-code/2026-11-11__23-01-37` (1 trial); `2026-11-11__22-49-37` was stopped (wrong proxy address) and is not used | Done: reward 1 |
 
 ## Log
 
@@ -464,3 +482,6 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   proxy, checked live with an unmodified LangChain agent and with Harbor's stock terminus-2 (2 smoke trials, reward 1
   each, the 90 s one cut at 90.0 s and graded). The live checks found the deadline running on the monotonic clock
   (1.6 s late in 3 of 5 cuts); fixed in the package; the same fix is due in the Harbor agent after the ablation.
+  v13: the proxy handles the Anthropic messages format; Harbor's Claude Code agent ran unchanged through it inside
+  the task container (cut at 300.0 s, reward 1). The model sent 7 more replies after the wrap-up notice
+  while the turn count rose from 1 to 9; logged as idea 4.
