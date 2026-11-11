@@ -13,7 +13,9 @@ Events per trial:
   agent_start   the agent phase starts (Harbor's agent_execution start; the budget clock starts here)
   model_call    one model reply: tokens in/out, cost; start = previous step end, end = start + request time
   commands      what the agent typed after that reply (keystrokes, requested waits); ends at the step's end
-  agent_end     exit_reason (budget stop, Harbor timeout, completion), replies cut, waits cut, artifact path
+  agent_end     exit_reason (budget stop, Harbor timeout, completion), replies cut, waits cut, artifact path,
+                when the work stopped and how long the stop's cleanup took, and the local-process check
+                (interrupt_at_stop: foreground process left running or not)
   verify        grading phase with the reward (the acceptance result)
 The trajectory records one timestamp per step, at the end of the turn; reply durations come from
 api_request_times_msec in the same order, so a turn splits into the reply and the commands that followed. Replies
@@ -104,7 +106,8 @@ def trial_events(tdir):
                       cut_replies=bud.get("cut_replies"), cut_waits=bud.get("cut_waits"),
                       wrapup_at_s=wrap, effort_switched_at_s=bud.get("effort_switched_at_sec"),
                       artifact=diff.replace("\\", "/") if os.path.exists(diff) else None,
-                      final_diff=bud.get("final_diff")))
+                      final_diff=bud.get("final_diff"), stopped_at_s=bud.get("stopped_at_sec"),
+                      cleanup_s=bud.get("cleanup_sec"), local_stop=bud.get("stop_interrupt")))
     v = r.get("verifier") or {}
     if v.get("started_at") and v.get("finished_at"):
         rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward")
