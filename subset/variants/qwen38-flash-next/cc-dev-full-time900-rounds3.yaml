@@ -1,0 +1,40 @@
+# qwen38-flash-next/cc-dev-full-time900-rounds3 - written by hand (not from make_variant.py): batch 4 of
+# subset/results/analysis-plan.md. Harbor's claude-code agent, unchanged and pinned to one version, on qwen3.8 through
+# the time-budget proxy for the full arm (port 8912; started by subset/tools/run_cc_batch.sh with
+# --feedback full --budget 900 --report-request --track-conversations). The container reaches the proxy as
+# host.docker.internal; no Anthropic API is called.
+#
+#   bash subset/tools/run_cc_batch.sh      (proxies + quiet-start rounds for both arms)
+n_attempts: 1
+n_concurrent_trials: 2
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-9296
+  - django__django-10880
+  - django__django-10914
+  - django__django-10973
+  - django__django-10999
+  - django__django-11066
+  - django__django-11087
+  - django__django-11095
+  - django__django-11099
+  - django__django-11119
+  - django__django-11133
+  - django__django-11141
+  - django__django-11149
+  - django__django-11163
+  - django__django-11179
+  - django__django-11206
+  - django__django-11211
+  - django__django-11239
+  - django__django-11265
+  - django__django-11276
+agents:
+- name: claude-code
+  model_name: qwen3.8-flash-next
+  kwargs:
+    version: "2.1.322"
+  env:
+    ANTHROPIC_BASE_URL: http://host.docker.internal:8912
+    ANTHROPIC_API_KEY: EMPTY

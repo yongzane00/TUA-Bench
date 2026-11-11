@@ -1,8 +1,9 @@
 # Analysis plan, frozen before the runs
 
 The plan (p1, p7) asks that budgets, sample sizes and thresholds be fixed before the experiments and not adjusted to
-the results. This file fixes them for the two batches below. It was committed before any trial of either batch ran;
-the git commit time is the record. Changes after that are listed at the end with their reason and date.
+the results. This file fixes them for batches 1 and 2 below. It was committed before any trial of either batch ran;
+the git commit time is the record. Changes after that, including batches 3 and 4 (each added before any of its
+trials), are listed at the end with their reason and date.
 
 ## Batch 1: feedback ablation (TUA-Bench, plan p6)
 
@@ -72,6 +73,27 @@ replies are slower", and the claim is narrowed as the plan prescribes; if it spa
 appears only at larger delays. The shown arm stays `full` even if batch 1 picks a simpler level, so that the 0 s
 reference from batch 2 stays valid.
 
+## Batch 4: second harness through the budget proxy (plan p3), added 2026-11-12 before any of its trials
+
+The method was tested in one harness (terminus-2). Batch 4 asks whether the same clock, given to an unchanged
+agent through the proxy (`time_budget.proxy`, harbor fork `5bae9619`), shows the same direction in a second one.
+
+| Item | Fixed value |
+|---|---|
+| Tasks | The same 20 dev tasks as batch 2 |
+| Agent | Harbor's `claude-code` agent, version 2.1.322 pinned, no code change; model qwen3.8-flash-next behind the proxy (Anthropic messages format) |
+| Arms | `cc-dev-hidden-time900-rounds3` (proxy `--feedback hidden`: nothing shown, same stop) and `cc-dev-full-time900-rounds3` (`--feedback full`: budget sentence and meter line); both with `--report-request` (the same report request in both arms) and no wrap-up notice |
+| Budget | 900 s per trial on the wall clock, from the trial's first model request (Claude Code's install is outside it); a reply still running at 900 s is cut and replaced by the stop reply; later requests get HTTP 400. The proxy cannot stop a command Claude Code is running |
+| Size | 3 rounds of 20 tasks per arm (60 trials per arm, 120 in all), the two arms side by side with 2 trials each (4 at once; the proxy keeps one clock per conversation), quiet-start rounds (`subset/tools/run_cc_batch.sh`); run after batch 3 |
+| Primary metric | Qualified deliveries (reward 1), x of 60 per arm |
+| Comparison | Full - hidden gap, paired bootstrap over the 20 tasks, 4000 resamples, seed 0. Shown next to batch 2's full - hidden gap on the same tasks; the two gaps are not tested against each other (too few tasks) |
+| Secondary | Lateness: Claude Code's end minus the deadline, P95 per arm (expected above batch 2's because a running command is not cut); trials stopped by the deadline; replies per trial; time of the final answer; failed proxy matches (a trial's requests split over two runs or two trials in one run, from the proxy event log against the trial logs) |
+
+**Decision.** The clock "carries over to the second harness" if the full - hidden gap has a 95% lower bound above
+0; "does no harm there" if the lower bound is above -3 of 60; otherwise "uncertain" (an interval beyond +-6 of 60 on
+both sides) or "hurts" (upper bound below 0). A run with any failed proxy match is reported with its count, and the
+affected trials are listed; they are not dropped.
+
 ## Rules for all batches
 
 - No trial is dropped after the fact. A trial with an infrastructure error counts as a failure (missing reward = 0,
@@ -80,7 +102,7 @@ reference from batch 2 stays valid.
 - Results are reported as counts (x of n) with the interval; an interval that spans both a clear gain and a clear
   loss is reported as "uncertain".
 - The held-out pilot tasks (40) and the other 80 TUA tasks are not used until the configuration is locked.
-- Batches share the server one at a time, in the order 1, 2, 3; two batches never run at once.
+- Batches share the server one at a time, in the order 1, 2, 3, 4; two batches never run at once.
 
 ## Changes after the freeze
 
@@ -93,3 +115,5 @@ reference from batch 2 stays valid.
   every arm. The task text now asks for the contract's report (plan p2: tests run and their real results, a short fix
   note, what is unverified), which the SWE-bench task text does not contain. Added the report check and condition
   (d) to batch 2, from the plan's week-4 condition (p8). Batch 1 is unchanged.
+- 2026-11-12, before any trial of it: batch 4 (second harness through the budget proxy) added. Batches 1 to 3 are
+  unchanged.

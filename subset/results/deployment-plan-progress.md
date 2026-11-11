@@ -18,6 +18,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Week-1 items for the next group meeting (p11): task contract, 10 reproducible tasks, data split, budget and logging spec, first configs | `pilot/README.md` (contract, budget, logging), `pilot/tasks.md` (split), `pilot/configs/oracle-week1.yaml` | Contract, split, spec and configs written; oracle check of the 10 tasks running (tmux `pilot`) |
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | `subset/tools/event_log.py`: one JSON line per model call, command batch, stop and grading | Done; tested on a pilot smoke trial and a TUA trial |
 | Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; live check on qwen3.8 passed (wrap-up notice, cut at 20.0 s; the server drops a cancelled reply within 0.5 s). Since v12 also a proxy for agents that cannot be changed: stock terminus-2 in Harbor ran through it with no code change (reward 1 at 300 s and at 90 s, cut at 90.0 s) |
+| Second harness (p3; the user's goal of one plugin for every harness) | Batch 4 in the frozen analysis plan: Harbor's claude-code agent (unchanged, version pinned) through the proxy, hidden vs full, 20 dev tasks x 3 rounds; configs `cc-dev-{hidden,full}-time900-rounds3`, launcher `subset/tools/run_cc_batch.sh`; checked live on 1 task (1 trial, and 2 at once on one URL) | Ready; runs after batch 3 |
 | Hosted API replication (p9) | | Needs money: ask the user |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
 | Held-out 80 TUA tasks, full 120 (p6) | | After the configuration is locked |
@@ -498,3 +499,5 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
   window first.
 - 2026-11-12 00:18: the server was busy again (3 to 4 requests from others), so the held check ran: 2 Claude Code
   trials at once on one proxy URL kept separate clocks (`smoke-proxy-claude-code/2026-11-12__00-18-33`).
+  Batch 4 added to the analysis plan before any of its trials: the same clock through the proxy in a second harness
+  (Claude Code), hidden vs full on the 20 dev tasks, decision on the full - hidden gap; configs load in Harbor.
