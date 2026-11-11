@@ -544,3 +544,9 @@ in the analysis plan, before the pilot batch, whose lateness target (P95 within 
 - 2026-11-12 02:10: no answer yet; the gate keeps the current rule. v16: the launcher, checked live.
 - 2026-11-12 02:45: batch 4's secondary metrics are ready to compute: `proxy_report.py` (proxy runs joined to trials;
   failed matches and lateness as the analysis plan defines them), checked on the smoke jobs.
+- 2026-11-12 03:20: batch 2's secondary metrics are ready too: `pilot/pilot_report.py` (outcome states, wrong
+  declarations, trials stopped by time, delivery and work lateness against each trial's own budget, stops that left a
+  process running, $ per qualified) and, for the report check, one blinded packet per trial that declared completion
+  (the reports, then the commands and outputs, with meter lines and wrap-up notices removed so the arm does not
+  show; ids random, the key kept apart). Checked on the three smoke runs: the 75 s run's delivery lateness reads
+  2.0 s, as measured live.
