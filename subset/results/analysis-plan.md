@@ -37,11 +37,11 @@ rounds.
 |---|---|
 | Tasks | The 20 dev tasks in `pilot/tasks.md` (all checked: reference fix scores 1, no change scores 0) |
 | Arms | `swe-dev-hidden-time900-rounds3`, `swe-dev-full-time900-rounds3`, `swe-dev-wrap120-time900-rounds3` |
-| Budget | 900 s on the real-time clock, hard deadline, `git diff` saved at the stop |
+| Budget | 900 s on the real-time clock, hard deadline, `git diff` saved at the stop, Ctrl-C to a command still running at the stop (`interrupt_at_stop`) |
 | Size | 3 rounds of 20 tasks per arm (60 trials per arm), arms side by side, quiet-start rounds; run after batch 1 |
 | Primary metric | Qualified deliveries: reward 1, x of 60 |
 | Outcome states | Qualified (reward 1); partial (reward below 1, non-empty saved diff); failed (empty diff or an error) |
-| Secondary | $ per qualified delivery; wrong declarations (declared complete, not qualified); lateness past the deadline on the real-time clock, P95 |
+| Secondary | $ per qualified delivery; wrong declarations (declared complete, not qualified); lateness past the deadline on the real-time clock, P95, in two forms: delivery lateness `elapsed_sec` - 900 (work stopped, terminal cleaned, diff saved) and work lateness `stopped_at_sec` - 900; trials whose stop left a foreground process running (`stop_interrupt.stopped` false) |
 | Comparison | Same paired bootstrap over the 20 tasks |
 
 **Decision (the plan's week-4 gate).** The wrap-up arm is kept only if (a) its qualified gap against the full arm
@@ -82,3 +82,7 @@ reference from batch 2 stays valid.
 ## Changes after the freeze
 
 - 2026-11-11, before any trial of it: batch 3 (latency intervention) added. Batches 1 and 2 are unchanged.
+- 2026-11-11, before any trial of batches 2 and 3: `interrupt_at_stop: true` added to all seven pilot configs, the same
+  in every arm (plan p4: at the deadline, cancel local processes and check they exited; p11: long tool cancellation).
+  Without it a command cut by the hard deadline kept running while the verifier graded. Lateness is defined in two
+  forms (batch 2, Secondary). Batch 1 is unchanged.

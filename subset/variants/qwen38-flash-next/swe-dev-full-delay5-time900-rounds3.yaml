@@ -9,6 +9,7 @@
 #   agents.0.kwargs.hard_deadline = true
 #   agents.0.kwargs.clock = wall
 #   agents.0.kwargs.save_diff_of = /testbed
+#   agents.0.kwargs.interrupt_at_stop = true
 #   datasets.0.path = ../datasets/swe-bench-verified
 #   datasets.0.task_names = [django__django-9296,django__django-10880,django__django-10914,django__django-10973,django__django-10999,django__django-11066,django__django-11087,django__django-11095,django__django-11099,django__django-11119,django__django-11133,django__django-11141,django__django-11149,django__django-11163,django__django-11179,django__django-11206,django__django-11211,django__django-11239,django__django-11265,django__django-11276]
 #   agents.0.kwargs.extra_reply_delay_sec = 5
@@ -56,5 +57,6 @@ agents:
     hard_deadline: true
     clock: wall
     save_diff_of: /testbed
+    interrupt_at_stop: true
     extra_reply_delay_sec: 5
   import_path: harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7

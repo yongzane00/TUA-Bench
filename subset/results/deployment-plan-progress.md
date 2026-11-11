@@ -247,6 +247,31 @@ scaled and spread-based rules cover fewer turns at about the same cost, and 3 x 
 for 37 s more. With 120 s, about 19 in 20 next turns fit (16856 of 17655), the same reserve the pilot's grading-time
 P90 suggested. No code change.
 
+## Cancelling local processes at the deadline (plan p4, p11; 2026-11-11)
+
+The plan's deadline stage asks to stop new calls, cancel local processes and check they exited (p4), and lists
+long-tool cancellation among the required engineering checks (p11). The hard deadline (v2) only cut the agent's
+wait: a command still running in the terminal kept running while the verifier graded the container, and could still
+change files. v7 adds `interrupt_at_stop`: when a budget ends the attempt, the harness lists the processes under the
+agent's shell (process tree under the tmux server), sends Ctrl-C to the foreground one (at most twice), lists again,
+and records both lists. Background jobs (`&`) are listed but left running, since some tasks need a process the agent
+started.
+
+**Self-test without a model server** (`pilot/selftest/`): a scripted model drives the real Harbor pipeline on one
+Django task (Docker, tmux with recording, verifier). Budget 20 s; reply 1 edits a file, starts `sleep 900 &` and
+`sleep 600`; reply 2 takes 60 s and is cut at the deadline.
+
+| Run | What it showed | Fix |
+|---|---|---|
+| 1 | Ctrl-C stopped `sleep 600`, but the agent's own shell was counted as a job (`stopped` false, a needless second Ctrl-C), and tmux's pane logger (`cat`) was listed | The process tree printed from inside the task showed why: the recorder starts `sh -c /bin/bash`, so the shell is not where the name rule looked. The agent's shell is now the deepest interactive shell with a terminal under tmux, and jobs are its descendants |
+| 2 | Correct lists, 1 Ctrl-C, `stopped` true; cleanup 6.4 s, deliverable final 8.6 s past the budget | Each call into the container costs about 1 s here; Ctrl-C, wait and the second listing now go in one call, and `git diff` and `git status` in one call |
+| 3 | Work stopped at 21.7 s, cleanup 2.8 s, deliverable final at 24.5 s: 4.5 s past the 20 s budget, inside the plan's 5 s target; reply cut, diff saved (1 file) | - |
+
+The metadata now has `stopped_at_sec` (work stopped) besides `elapsed_sec` (deliverable final), so lateness can be
+reported both ways. `interrupt_at_stop: true` is on in all seven pilot configs (batches 2 and 3), the same in every
+arm, recorded as a dated change in the analysis plan before any of their trials. 30 of 30 unit tests pass, with the
+process tree from the real container as the test fixture.
+
 ## LangChain adapter on a live model (2026-11-11)
 
 `packages/time-budget/examples/live_smoke.py` (harbor fork) ran `TimeBudgetMiddleware` in a real `create_agent` loop
@@ -293,6 +318,8 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
 | v5 | TUA-Bench | `e73285c` | `subset/tools/event_log.py`; oracle config for dev tasks 11 to 20 |
 | v6 | harbor | `c61156e9` | `packages/time-budget`: core + LangChain middleware. 11 of 11 tests |
 | v6 | harbor | `2749ca37` | `packages/time-budget/examples/live_smoke.py`; live check and server-side cancel check in the READMEs |
+| v7 | harbor | `c41a5847` | `interrupt_at_stop`: Ctrl-C the terminal's running command at a budget stop and check it exited; one container call each for the check and the saved diff; `stopped_at_sec`. 30 of 30 tests |
+| v7 | TUA-Bench | (this commit) | `pilot/selftest/` scripted-model self-test; `interrupt_at_stop` on in the seven pilot configs; analysis-plan change recorded |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -320,3 +347,5 @@ an orphaned generation. Hosted APIs were not checked and may still bill the cut 
   as the adaptive rules tried; 120 s covers 16856 of 17655 next turns.
   Latency batch (plan p5) prepared: 4 configs, batch 3 added to the analysis plan before any of its
   trials, `--did` checked on finished runs (reproduces the second-curve result, +0 of 200, -20 to +20).
+  Deadline cleanup (plan p4, p11): `interrupt_at_stop` (v7), checked live with a scripted model in a Django
+  container (3 runs, 2 fixes); on in the pilot configs.

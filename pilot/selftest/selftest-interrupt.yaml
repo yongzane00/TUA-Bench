@@ -1,0 +1,22 @@
+# Scripted-model self-test of the stop mechanics (pilot/selftest/scripted_agent.py); no model server is used.
+#
+#   cd ~/work/TUA-Bench
+#   PYTHONPATH=pilot/selftest uv run --no-sync harbor run -c pilot/selftest/selftest-interrupt.yaml \
+#       -o <TUA-Bench on C:>/jobs/pilot/selftest-interrupt --yes
+n_attempts: 1
+n_concurrent_trials: 1
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-11099
+agents:
+- import_path: scripted_agent:ScriptedH7
+  model_name: openai/scripted-selftest
+  kwargs:
+    api_base: http://127.0.0.1:9/v1
+    time_budget_sec: 20
+    hard_deadline: true
+    clock: wall
+    save_diff_of: /testbed
+    interrupt_at_stop: true
+    script: interrupt
