@@ -7,33 +7,105 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 
 | Plan item (page) | What is done here | Status |
 |---|---|---|
-| I0-I3 feedback ablation, 40 tasks x 4 arms x 3 attempts = 480 trials (p6) | `feedback` levels in the agent (v1); 4 configs; arms run side by side, 1 trial each, so they share server conditions | Launched 2026-11-11 09:38 in tmux `abl38`; waiting for the qwen3.8 server |
-| Finalize control "P" with a reserve (p4) | | Next |
-| Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | | Next: measure in finished runs, then bound it in code |
-| Latency intervention, +5 s and +20 s per reply (p5) | | After P |
-| H1: the clock helps tasks that can be done but run out of time (p5) | | Analysis on finished runs |
-| H2: feedback brings the deliverable earlier (p5) | | Analysis on finished runs |
-| Paired task-level bootstrap, decision routes A and B (p7) | | Analysis on finished runs |
-| Cost per qualified delivery, empty-handed timeouts (p7) | | Analysis on finished runs |
+| I0-I3 feedback ablation, 40 tasks x 4 arms x 3 attempts = 480 trials (p6) | `feedback` levels in the agent (v1); 4 configs; arms run side by side, 1 trial each; 3 rounds, each started only when the server is quiet | Waiting for a quiet server (tmux `abl38`, gate log `~/work/abl38-gate.log`) |
+| Finalize control "P" with a reserve (p4) | `finalize_reserve_sec` (v2): one wrap-up notice when time left <= recent turn length + reserve | Code and tests done; run after the ablation |
+| Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits | Code and tests done; needs a live check |
+| Latency intervention, +5 s and +20 s per reply (p5) | `extra_reply_delay_sec` (v2) | Code and tests done; run after P |
+| H1: the clock helps tasks that can be done but run out of time (p5) | Classes from other base runs; gap by class (below) | First result: supported at 2400 s |
+| H2: feedback brings the deliverable earlier (p5) | First `mark_task_complete` time from trajectories | Running |
+| Paired task-level bootstrap, decision routes A and B (p7) | `subset/tools/plan_metrics.py` | Done for qwen3.8; qwen3.6 running |
+| Cost per qualified delivery, empty-handed timeouts (p7) | same | Done for qwen3.8 |
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | | Later |
-| Framework middleware (BudgetState, ClockFeedback, ToolObserver, FinalizeController) + LangChain adapter (p3) | | Later |
+| Framework middleware + LangChain adapter (p3) | | Later |
 | Hosted API replication (p9) | | Needs money: ask the user |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
 | Held-out 80 TUA tasks, full 120 (p6) | | After the configuration is locked |
+
+## Findings so far (finished runs, qwen3.8, 40 tasks x 5 attempts per run)
+
+"Solved" = reward 1, the plan's qualified delivery. Gaps are shown minus hidden at the same budget; 95% CIs from a
+paired bootstrap over the 40 tasks (attempts stay with their task), as the plan asks on p7.
+
+| Budget (s) | Solved, hidden | Solved, shown | Gap (95% CI) | $ per solved, hidden | $ per solved, shown | Ratio (95% CI) | Route A | Route B |
+|---|---|---|---|---|---|---|---|---|
+| 1200 | 69 of 200 | 81 of 200 | +12 (-2 to +27) | $0.0552 | $0.0453 | 0.82 (0.64 to 1.03) | no | pass |
+| 1800 | 85 of 200 | 91 of 200 | +6 (-4 to +16) | $0.0666 | $0.0506 | 0.76 (0.61 to 0.94) | no | pass |
+| 2400 | 87 of 200 | 99 of 200 | +12 (+0 to +24) | $0.0756 | $0.0638 | 0.84 (0.64 to 1.09) | pass | pass |
+| 3600 | 87 of 200 | 104 of 200 | +17 (+5 to +31) | $0.1225 | $0.0874 | 0.71 (0.56 to 0.92) | pass | pass |
+
+Route A (plan p7): at least +10 of 200 solved, CI lower bound above 0, $ per solved at most 5% worse.
+Route B: $ per solved at least 15% lower, CI lower bound of the gap above -6 of 200. These are the plan's thresholds
+applied to finished runs; they were not frozen before the runs, so they describe, not decide.
+
+**Timeliness.** The old stop fires only between turns, so a slow reply runs on past the budget:
+
+| Budget (s) | Arm | Clock reached the budget | Late by: median / P95 / max (s) | Late by more than 30 s | Solved among those |
+|---|---|---|---|---|---|
+| 1200 | hidden | 79 of 200 | 60 / 758 / 1200 | 57 of 200 | 1 of 57 |
+| 1200 | shown | 58 of 200 | 62 / 1200 / 1202 | 39 of 200 | 3 of 39 |
+| 1800 | hidden | 62 of 200 | 68 / 394 / 600 | 50 of 200 | 3 of 50 |
+| 1800 | shown | 40 of 200 | 77 / 600 / 600 | 26 of 200 | 0 of 26 |
+| 3600 | hidden | 45 of 200 | 85 / 465 / 600 | 37 of 200 | 2 of 37 |
+| 3600 | shown | 23 of 200 | 54 / 600 / 600 | 16 of 200 | 0 of 16 |
+
+The maximum is Harbor's own agent limit ending the trial. Late trials almost never solve, and mean agent time is
+similar in both arms (768 vs 795 s at 1200 s), so the late stop does not explain the gains; it does mean the
+plan's P95 target of 5 s is far off without `hard_deadline`.
+
+**H1.** Task classes come from base runs other than the pair being compared: "capable" = base solved the task at
+least once in 5 tries at 12000 s; "time-limited" = base ended by time in at least 3 of 5 tries at 3600 s.
+
+| Budget (s) | Capable, time-limited (6 tasks) | Capable, not time-limited (21 tasks) | Not solved at 12000 s (13 tasks) |
+|---|---|---|---|
+| 1200 | -1: 5 to 4 of 30 | +15: 62 to 77 of 105 | -2: 2 to 0 of 65 |
+| 1800 | +1: 10 to 11 of 30 | +5: 73 to 78 of 105 | +0: 2 to 2 of 65 |
+| 2400 | +8: 6 to 14 of 30 | +1: 78 to 79 of 105 | +3: 3 to 6 of 65 |
+
+At 2400 s the gain sits in tasks the base can do but runs out of time on, as H1 predicts. At 1200 s it moves to
+tasks that are not time-limited at 3600 s, which become time-limited when the budget is a third as long. Tasks the
+base never solves gain almost nothing at any budget.
+
+**Server conditions.** The qwen3.8 server moved to `<qwen38-vllm-host-2>` (used by every qwen3.8 run since 2026-10-23); the
+old `<qwen38-vllm-host>` no longer answers. vllmtop history for the last 14 days: the server had requests running in 42 to
+67 of every 100 seconds at every hour of the day (quietest 09:00 to 14:00), and busy spells last whole days
+(2026-11-05: 91 of 100; 2026-11-11: 98 of 100). Night is not reliably quiet, so each ablation round waits for 10
+minutes with no requests from anyone; trials can later be tagged with the load during them from the same history.
+
+## Related work (abstracts, checked 2026-11-11)
+
+| Paper | Finding | Relation to this work |
+|---|---|---|
+| On the Clock, arXiv 2610.10833 (2026-10-07) | Timing information makes agents keep to the budget "without measurable loss in performance"; trained agents learn when to stop but fill extra time with repeated actions; agents do not turn extra time into better results | Here the clock raises quality at a fixed budget (+12 and +17 of 200 at 2400 and 3600 s, CIs above 0), and the shown arm at 3600 s beats the hidden arm at 12000 s (104 vs 95 of 200 for $9.09 vs $29.48): the "productive" side they call open |
+| Timely Machine, arXiv 2601.16486 (2026-01-23) | Tool latency separates time from tokens; the best model and strategy depend on latency; RL training (Timely-RL) | The latency intervention tests the same question without training |
+
+## Ideas to test (new, beyond the plan)
+
+1. **Effort that follows the clock.** About four fifths of the time goes to waiting for the model. Near the
+   deadline the harness could lower `reasoning_effort` (or cap `max_tokens` to what fits in the time left) instead
+   of only telling the model. This changes the inference, not the prompt; compare with the wrap-up notice.
+2. **Natural latency experiment.** Server load changes the model's speed from trial to trial. Tagging each trial
+   with its measured tokens per second (from the agent's own request times) and the vllmtop load gives a free
+   dose-response check of H1 before paying for injected delays.
+3. **Turn-length forecast by command type** (plan p4): keep durations per command class (install, build, test,
+   GUI action) instead of the mean of the last 3 turns.
 
 ## Versions
 
 | Version | Repo | Commit | What changed |
 |---|---|---|---|
 | v1 | harbor | `ac7c6ba3` | `feedback` kwarg: `hidden` (I0), `once` (I1), `clock` (I2), `full` (I3, same text as the finished H7 runs, checked against a trajectory). 9 of 9 unit tests pass |
-| v1 | TUA-Bench | | Ablation configs `harness0-time2400-attempt3`, `harness7-time2400-{once,clock}-attempt3`, `harness7-time2400-attempt3` (n_concurrent_trials 1 each); `tools/run_parallel.sh` + `tools/run_one.sh` |
+| v1 | TUA-Bench | `409ae90`, `55b16b4` | First ablation configs and launcher; server address fix; `.146` added to the local redact filter as `<qwen38-vllm-host-2>` |
+| v2 | harbor | `82c207e1` | `hard_deadline`, `finalize_reserve_sec`, `extra_reply_delay_sec` (all off by default). 17 of 17 unit tests pass |
+| v2 | TUA-Bench | this commit | Ablation as 3 quiet-start rounds (`run_parallel.sh`, `run_gate.sh`, `run_one.sh`); `-rounds3` configs replace the `-attempt3` ones; `plan_metrics.py` |
 
 ## Runs
 
-| Session | Arms | Started | State |
-|---|---|---|---|
-| `abl38` | I0 `harness0-time2400-attempt3`, I1 `harness7-time2400-once-attempt3`, I2 `harness7-time2400-clock-attempt3`, I3 `harness7-time2400-attempt3` | 2026-11-11 09:38 | Both model servers unreachable from this machine at 09:30 (`<qwen38-vllm-host>` times out, `<qwen36-vllm-host>` refuses); arms start when the qwen3.8 server answers |
+| Session | Arms | State |
+|---|---|---|
+| `abl38` (first launch) | `-attempt3` configs | Started 09:40, stopped 09:53 on 2026-11-11 because the server was busy; the four partial job folders under `jobs/qwen38-flash-next/*-attempt3/` are left as they are and are not used |
+| `abl38` | I0 `harness0-time2400-rounds3`, I1 `harness7-time2400-once-rounds3`, I2 `harness7-time2400-clock-rounds3`, I3 `harness7-time2400-rounds3`; 3 rounds of 40 trials per arm | Waiting since 2026-11-11 09:58 for 10 quiet minutes (3 requests from others running) |
 
 ## Log
 
-- 2026-11-11: read the plan; made the branch; v1 (feedback levels) written, tested and committed; ablation launched.
+- 2026-11-11: read the plan; made the branch; v1 and v2 written, tested and committed; delivery metrics, timeliness
+  and H1 computed for qwen3.8; ablation set up as quiet-start rounds.

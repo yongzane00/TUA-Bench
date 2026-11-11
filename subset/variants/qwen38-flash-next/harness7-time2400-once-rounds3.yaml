@@ -1,15 +1,15 @@
-# qwen38-flash-next/harness7-time2400-clock-attempt3 — generated from baseline.yaml by make_variant.py.
+# qwen38-flash-next/harness7-time2400-once-rounds3 — generated from baseline.yaml by make_variant.py.
 # Do not hand-edit; regenerate instead. Changes vs baseline:
-#   n_attempts = 3
+#   n_attempts = 1
 #   n_concurrent_trials = 1
 #   agents.0.name = null
 #   agents.0.kwargs.api_base = http://<qwen38-vllm-host-2>:8000/v1
 #   agents.0.import_path = harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7
 #   agents.0.kwargs.time_budget_sec = 2400
-#   agents.0.kwargs.feedback = clock
+#   agents.0.kwargs.feedback = once
 #
-#   harbor run -c subset/variants/qwen38-flash-next/harness7-time2400-clock-attempt3.yaml -o jobs/qwen38-flash-next/harness7-time2400-clock-attempt3
-n_attempts: 3
+#   harbor run -c subset/variants/qwen38-flash-next/harness7-time2400-once-rounds3.yaml -o jobs/qwen38-flash-next/harness7-time2400-once-rounds3
+n_attempts: 1
 n_concurrent_trials: 1
 datasets:
 - path: tasks
@@ -68,5 +68,5 @@ agents:
       input_cost_per_token: 1.5e-07
       output_cost_per_token: 4.7e-07
     time_budget_sec: 2400
-    feedback: clock
+    feedback: once
   import_path: harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7
