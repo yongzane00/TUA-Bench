@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Report for a side-by-side ablation (run_parallel.sh): every arm vs the first arm, plus server load per trial.
 
-    python3 ablation_report.py <model> <label>=<config> [<label>=<config> ...]       (run in WSL)
+    python3 ablation_report.py <model> <label>=<config> [<label>=<config> ...] [--vs <label>]      (run in WSL)
     e.g. ablation_report.py qwen38-flash-next I0=harness0-time2400-rounds3 I1=harness7-time2400-once-rounds3 \
          I2=harness7-time2400-clock-rounds3 I3=harness7-time2400-rounds3
 
 Merges every finished job folder of each config (one per round). Per arm: solved (reward 1) x of n, mean
-reward, $ per solved, trials ended by time. Per arm vs the first arm: solved gap with a 95% CI from a paired
+reward, $ per solved, trials ended by time. Per arm vs the first arm (and vs the --vs arm, if given): solved gap with a 95% CI from a paired
 bootstrap over tasks (attempts stay with their task). Server load: for each trial, the mean number of requests
 running on the model server during its agent phase, from vllmtop's history (~/.local/share/vllmtop/usage.db),
 minus our own trials active at the same time (each counted at 0.8, the share of time our agents wait on the
@@ -102,41 +102,50 @@ def gap_ci(a, b):
     return g(tasks), gs[int(.025 * REPS)], gs[int(.975 * REPS)], len(tasks)
 
 
-def table(arms, keep, title):
+def table(arms, keep, title, ref=None):
     print(f"\n{title}\n")
-    print("| Arm | Config | Rounds | Solved | Mean reward | $ per solved | Ended by time | Solved gap vs first arm (95% CI) |")
-    print("|---|---|---|---|---|---|---|---|")
+    extra = f" Solved gap vs {ref} (95% CI) |" if ref else ""
+    print("| Arm | Config | Rounds | Solved | Mean reward | $ per solved | Ended by time | Solved gap vs first arm (95% CI) |"
+          + extra)
+    print("|---|---|---|---|---|---|---|---|" + ("---|" if ref else ""))
+    fmt = lambda r: "n/a" if r is None else f"{r[0]:+.0f} ({r[1]:+.0f} to {r[2]:+.0f}), {r[3]} tasks"
+    ref_ts = next(([t for t in ts_ if keep(t)] for label, _, ts_ in arms if label == ref), None)
     base = None
     for label, cfg, ts_ in arms:
         ts_ = [t for t in ts_ if keep(t)]
         if not ts_:
-            print(f"| {label} | `{cfg}` | 0 | no trials | | | | |")
+            print(f"| {label} | `{cfg}` | 0 | no trials | | | | |" + (" |" if ref else ""))
             continue
         s = sum(t["solved"] for t in ts_)
         cost = sum(t["cost"] for t in ts_)
-        gap = "" if base is None else (lambda r: "n/a" if r is None else f"{r[0]:+.0f} ({r[1]:+.0f} to {r[2]:+.0f}), {r[3]} tasks")(gap_ci(ts_, base))
+        gap = "" if base is None else fmt(gap_ci(ts_, base))
+        vs = "" if not ref else (" |" if label == ref or not ref_ts else f" {fmt(gap_ci(ts_, ref_ts))} |")
         print(f"| {label} | `{cfg}` | {len({t['job'] for t in ts_})} | {s} of {len(ts_)} | "
               f"{sum(t['reward'] for t in ts_) / len(ts_):.3f} | {'$%.4f' % (cost / s) if s else 'n/a'} | "
-              f"{sum(t['by_time'] for t in ts_)} of {len(ts_)} | {gap} |")
+              f"{sum(t['by_time'] for t in ts_)} of {len(ts_)} | {gap} |" + vs)
         if base is None:
             base = ts_
 
 
 def main():
-    model, pairs = sys.argv[1], [a.split("=", 1) for a in sys.argv[2:]]
+    argv = sys.argv[2:]
+    ref = None
+    if "--vs" in argv:
+        i = argv.index("--vs"); ref = argv[i + 1]; argv = argv[:i] + argv[i + 2:]
+    model, pairs = sys.argv[1], [a.split("=", 1) for a in argv]
     arms = [(label, cfg, load_arm(model, cfg)) for label, cfg in pairs]
     everyone = [t for _, _, ts_ in arms for t in ts_]
     server_load(everyone)
     for t in everyone:
         r = t.get("running")
         t["others"] = None if r is None else max(0.0, r - OWN_SHARE * (1 + own_overlap(t, everyone)))
-    table(arms, lambda t: True, "All trials:")
+    table(arms, lambda t: True, "All trials:", ref)
     known = [t for t in everyone if t["others"] is not None]
     if known:
         quiet = sum(t["others"] < 0.5 for t in known)
         print(f"\nServer load known for {len(known)} of {len(everyone)} trials; quiet (other users' load "
               f"below 0.5): {quiet} of {len(known)}. Mean other-user load: {stx.mean(t['others'] for t in known):.2f}.")
-        table(arms, lambda t: t["others"] is not None and t["others"] < 0.5, "Quiet trials only:")
+        table(arms, lambda t: t["others"] is not None and t["others"] < 0.5, "Quiet trials only:", ref)
 
 
 if __name__ == "__main__":
