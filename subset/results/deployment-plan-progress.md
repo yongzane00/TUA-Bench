@@ -7,7 +7,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 
 | Plan item (page) | What is done here | Status |
 |---|---|---|
-| I0-I3 feedback ablation, 40 tasks x 4 arms x 3 attempts = 480 trials (p6) | `feedback` levels in the agent (v1); 4 configs; arms run side by side, 1 trial each; 3 rounds, each started only when the server is quiet | Waiting for a quiet server (tmux `abl38`, gate log `~/work/abl38-gate.log`) |
+| I0-I3 feedback ablation, 40 tasks x 4 arms x 3 attempts = 480 trials (p6); frozen analysis plan with rounds 4-5 | `feedback` levels in the agent (v1); 4 configs; arms run side by side, 1 trial each; 3 rounds, each started only when the server is quiet | Waiting for a quiet server (tmux `abl38`, gate log `~/work/abl38-gate.log`) |
 | Finalize control "P" with a reserve (p4) | `finalize_reserve_sec` (v2): one wrap-up notice when time left <= recent turn length + reserve | Code and tests done; run after the ablation |
 | Timeliness: overrun past the deadline, P95 target 5 s (p4, p7) | Measured in finished runs (below); `hard_deadline` (v2) cancels a running reply and cuts command waits | Live check passed: 75 s budget, stopped at 77.0 s with 1 reply cut (smoke run `swe-smoke-wrap30-time75`) |
 | Latency intervention, +5 s and +20 s per reply (p5) | `extra_reply_delay_sec` (v2) | Code and tests done; run after P |
@@ -117,6 +117,27 @@ first 20 dev tasks, these two are the only failures; with the two replacements, 
 Both are listed in `pilot/excluded.md`; the selection rule then took `django__django-11265` and `-11276` into dev
 (being checked) and moved 3 held-out tasks by the same file rule. Grading time over 44 trials: median 40 s, P90
 102 s, which supports the plan's 120 s wrap-up reserve (P90 rounded up to the next 30 s).
+
+## Second curve and power (plan p5, p7)
+
+**Does the clock make extra time more useful?** The plan separates two curves: across arms at one budget (done above)
+and within an arm as the budget grows. Paired over tasks, qwen3.8, solved of 200:
+
+| Budget step | Shown gains | Hidden gains | Difference (95% CI) |
+|---|---|---|---|
+| 1200 -> 2400 s | +18 | +18 | +0 (-20 to +19) |
+| 2400 -> 3600 s | +5 | +0 | +5 (-7 to +17) |
+| 1200 -> 3600 s | +23 | +18 | +5 (-14 to +25) |
+
+No evidence that the shown arm turns extra time into more solved tasks than the hidden arm does. The gain is a higher
+level at each fixed budget, not a steeper curve; this agrees with On the Clock's point that keeping to a budget and
+using more time well are different things, and the write-up should claim only the first.
+
+**Precision of the ablation.** Resampling 3 of 5 attempts per task from the finished 2400 s runs: the interval for the
+full meter against hidden is about +-9 of 120, around an effect of about +7 of 120, and it excluded 0 in 40 of 200
+resamples. The plan's 3 rounds will most likely leave I1 and I2 "uncertain". The frozen analysis plan
+(`subset/results/analysis-plan.md`, commit `bf1f151`, 11:42, before any ablation trial) therefore fixes rounds 4 and 5
+in advance and states every decision rule.
 
 ## Clock drift (validity check)
 
