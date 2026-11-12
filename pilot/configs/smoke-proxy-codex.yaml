@@ -1,0 +1,23 @@
+# Harbor's Codex agent (unchanged, version pinned) on qwen3.8-flash-next through the time-budget proxy, OpenAI responses
+# format: a third agent harness for the proxy. Codex runs inside the task container and reaches the proxy as
+# host.docker.internal; Harbor writes OPENAI_BASE_URL into Codex's config.toml. No OpenAI API is called.
+#
+#   cd ~/work/harbor && uv run --no-project --with aiohttp --with-editable ./packages/time-budget \
+#       python -m time_budget.proxy --upstream http://<qwen38-vllm-host-2>:8000/v1 --budget 300 --reserve 60 \
+#       --track-conversations --port 8914 --events ~/work/proxy-smoke/events-codex.jsonl
+#   cd ~/work/TUA-Bench && uv run --no-sync harbor run -c pilot/configs/smoke-proxy-codex.yaml \
+#       -o <TUA-Bench on C:>/jobs/qwen38-flash-next/smoke-proxy-codex --yes
+n_attempts: 1
+n_concurrent_trials: 1
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-11099
+agents:
+- name: codex
+  model_name: qwen3.8-flash-next
+  kwargs:
+    version: "0.118.0"
+  env:
+    OPENAI_BASE_URL: http://host.docker.internal:8914/v1
+    OPENAI_API_KEY: EMPTY

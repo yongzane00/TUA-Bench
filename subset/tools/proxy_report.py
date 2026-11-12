@@ -4,8 +4,9 @@
     python3 proxy_report.py <proxy events.jsonl> <job dir> [<job dir> ...] [--budget 900] [--datasets <dir>] [--pairs]
 
 Each proxy run (one per conversation) is matched to one trial: its first request must fall inside the trial's agent
-execution, and, when the proxy recorded the run's first user message (`first_user`, proxy v17 on), that text must
-contain the start of the task's instruction. Among the candidates the pair whose start and end times lie closest
+execution, and, when the proxy recorded the user text of the run's first request (`user_text` since proxy v21;
+`first_user`, its first user message only, in v17 to v20), that text must contain the start of the task's
+instruction. Among the candidates the pair whose start and end times lie closest
 wins, one to one. Reported per job set:
   matched           trials with exactly one run, and runs left without a trial (a "failed proxy match" in the
                     analysis plan: a trial's requests split over two runs, or two trials in one run)
@@ -43,8 +44,8 @@ def load_runs(path):
         r["last"] = max(r["last"], e["ts"])
         if e["event"] == "agent_start":
             r["start"] = e["ts"]
-        elif e["event"] == "model_input" and e.get("first_user") is not None:
-            r["first_user"] = norm(e["first_user"])
+        elif e["event"] == "model_input" and e.get("user_text", e.get("first_user")) is not None:
+            r["first_user"] = norm(e.get("user_text", e.get("first_user")))
         elif e["event"] == "model_call":
             r["calls"].append(e)
             r["cut"] |= bool(e.get("cut_by_deadline"))
