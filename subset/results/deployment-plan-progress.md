@@ -473,6 +473,33 @@ route. A side request under a Claude model name would have reached vLLM, which s
 `subset/tools/proxy_report.py` now counts the lowered calls per trial (batch 4's new secondary; on the first two
 self-tests: 2 calls, in 2 of 2 trials).
 
+## Self-hosted cost: server hours per solved task (plan p9; 2026-11-12)
+
+The plan asks for GPU occupancy hours on a self-hosted model rather than token-equivalent dollars, since the
+dollars in the earlier tables use API prices nobody paid. The vllmtop history (from 2026-10-13) records the server's
+running requests every second and its token counters about every 30 s. `subset/tools/server_hours.py` charges each
+run the server's busy hours in the run's window times the run's share of the server's output tokens (decoding takes
+most of the time of these long replies). The 2400 s pair ran before the history starts.
+
+| Budget (s) | Arm | Solved | Window (h) | Run's share of the server's output tokens | Server-hours | Server-hours per solved |
+|---|---|---|---|---|---|---|
+| 1200 | hidden | 69 of 200 | 15.1 | 0.90 | 12.9 | 0.187 |
+| 1200 | shown | 81 of 200 | 15.9 | 0.90 | 13.5 | 0.166 |
+| 1800 | hidden | 85 of 200 | 17.8 | 0.95 | 16.1 | 0.190 |
+| 1800 | shown | 91 of 200 | 17.6 | 0.88 | 14.8 | 0.162 |
+| 3600 | hidden | 87 of 200 | 26.0 | 0.94 | 23.6 | 0.271 |
+| 3600 | shown | 104 of 200 | 24.3 | 0.91 | 21.1 | 0.203 |
+| 12000 | hidden (H0, long limit) | 95 of 200 | 43.0 | 0.95 | 40.0 | 0.421 |
+
+The history covered 99 to 100 of every 100 seconds of each window. The shown arm used 0.89, 0.85 and 0.75 times the
+hidden arm's server-hours per solved task at 1200, 1800 and 3600 s. The API-price ratios were 0.82, 0.76 and 0.71, so
+the direction holds in server time too. During these runs the 4 concurrent trials made 88 to 95 of every 100 output
+tokens the server generated: the shared server was close to being ours, and a run's cost was close to its wall
+time. So a solved task cost about 0.16 to 0.27 server-hours at 4 trials at a time. To get dollars, multiply by the
+server's GPU count and a price per GPU-hour. Two prices fit the plan: the marginal running cost of the existing
+machine, or rental or depreciation. Both need numbers from the server's owner. A batch run with more trials at once
+would share the server's time among more trials; this was not measured.
+
 ## Minimum engineering checks and handover package (plan p11; 2026-11-12)
 
 The plan lists eight checks the plugin must pass and eight items a handover must contain. Where each one stands:
@@ -497,7 +524,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
 | 4. Task and environment list | `pilot/tasks.md`, `pilot/excluded.md`, task images from SWE-bench | |
 | 5. One full success and one timeout trajectory | Candidates in the smoke jobs | Picked from batch 2 when it has run |
 | 6. Analysis scripts and configs | `plan_metrics.py`, `ablation_report.py`, `pilot/pilot_report.py`, `proxy_report.py`, `event_log.py`; all configs in the repo | |
-| 7. Real cost report | | Needs the hosted API batch (p9, the user's decision) or GPU-hour accounting for the shared server |
+| 7. Real cost report | Self-hosted: server-hours per solved task from the vllmtop history (section "Self-hosted cost"; `server_hours.py`) | The server's GPU count and a price per GPU-hour for dollars; a hosted API bill needs the p9 batch (the user's decision) |
 | 8. Known failure modes, scope, how to turn it off | Package README "Known failure modes, where it helps, how to turn it off" (harbor `6a7198c6`): 9 failure modes seen in the runs, each with its numbers and its guard; the scope from the finished runs; `feedback: hidden` keeps only the stop | Batch 2's report check will add the false-claim rate |
 
 ## Ideas to test (new, beyond the plan)
@@ -649,3 +676,8 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   (a failed model call counted as a turn), fixed in v20 with tests; tool failure now tested. Open handover items:
   a package release number, one page on the stop semantics, the two example trajectories (from batch 2), a real
   cost report (needs p9 or GPU-hour accounting), one list of failure modes.
+- 2026-11-12 08:00: the gate still waits (3 to 4 requests from others). Handover items 3 and 8 written into the
+  package README (the per-framework table brought up to v20; nine failure modes seen in the runs, where the clock
+  helps, how to turn it off). Item 7, self-hosted: `server_hours.py` charges each run its share of the shared
+  server's time from the vllmtop history; a solved task cost 0.16 to 0.27 server-hours, and the shown arm 0.75 to
+  0.89 times the hidden arm's, the same direction as the API-price ratios.
