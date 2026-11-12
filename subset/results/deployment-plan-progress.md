@@ -19,7 +19,7 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Event log with run_id, task_id, phase, remaining budget, ... (p11) | `subset/tools/event_log.py`: one JSON line per model call, command batch, stop and grading | Done; tested on a pilot smoke trial and a TUA trial |
 | Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; live check on qwen3.8 passed (wrap-up notice, cut at 20.0 s; the server drops a cancelled reply within 0.5 s). Since v12 also a proxy for agents that cannot be changed: stock terminus-2 in Harbor ran through it with no code change (reward 1 at 300 s and at 90 s, cut at 90.0 s) |
 | Second harness (p3; the user's goal of one plugin for every harness) | Batch 4 in the frozen analysis plan: Harbor's claude-code agent (unchanged, version pinned) through the proxy, hidden vs full, 20 dev tasks x 3 rounds; configs `cc-dev-{hidden,full}-time900-rounds3`, launcher `subset/tools/run_cc_batch.sh`; checked live on 1 task (1 trial, and 2 at once on one URL). Since v19 a Bash command running at the deadline is ended by Claude Code itself (its timeout lowered to the time left, background tasks off; scripted self-tests). A third harness, Harbor's Codex agent (responses format), ran unchanged through the proxy on 1 task: wrap-up notice at 231 s of 300 s, answer at 263 s, reward 1 | Ready; runs after batch 3 |
-| Hosted API replication (p9) | | Needs money: ask the user |
+| Hosted API replication (p9) | Self-hosted cost instead: server-hours per solved task (`server_hours.py`, section "Self-hosted cost") | Not run: there is no money for hosted APIs (the user, 2026-11-12) |
 | Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
 | Held-out 80 TUA tasks, full 120 (p6) | | After the configuration is locked |
 
@@ -161,9 +161,38 @@ A round lasts about 15 h (40 trials per arm in a row at 22.6 min each, from the 
 rule governs only the first minutes of a round; the load during the round is whatever the other users bring, and
 batch 1 already plans a sensitivity analysis on trials run while other users' load was below 0.5. The four arms run
 side by side, so any load slows all of them alike. Waiting for k = 0 costs a median 12.6 h per round; k = 2 cuts
-that to 0.6 h for about 10 % slower replies per extra request at the start. Changing the rule changes a frozen
-protocol item (batch 1, Size), so it is the user's decision; recommendation: k = 2, recorded in the analysis plan as
-a change before round 1.
+that to 0.6 h for replies at about 0.9 times the speed per extra request at the start. Changing the rule changes a
+frozen protocol item (batch 1, Size), so it is the user's decision; recommendation: k = 2, recorded in the analysis
+plan as a change before round 1.
+
+**Does other users' load change the clock? (2026-11-12, the user's question)** No: the budget is real elapsed time,
+and load does not change how it is measured. Load changes how much work fits in it, because the server shares its
+decode speed among the requests running. Per-request decode speed from vllmtop since 2026-10-23 (all seconds with that
+many requests running; the rows for 6 to 8 are rare and uneven):
+
+| Requests running | Seconds | Per-request decode speed, median (tok/s) | Against 1 running |
+|---|---|---|---|
+| 1 | 345006 | 24.7 | 1.00 |
+| 2 | 296429 | 21.8 | 0.88 |
+| 3 | 148537 | 18.8 | 0.76 |
+| 4 | 167073 | 16.9 | 0.68 |
+| 5 | 26479 | 15.0 | 0.61 |
+
+What this means for the ablation:
+
+1. The comparison between arms is protected by the design, not by the gate. The four arms run side by side, one
+   trial each, so a load spike slows all four at the same moment.
+2. The gate controls only the start. A round lasts about 15 h, and other users come and go during it: the server
+   has requests running in 42 to 67 of every 100 seconds at every hour of the day (section "Server conditions").
+3. The finished runs behind every result so far (H0 against H7 at 1200 to 3600 s) had no start gate and ran under the
+   same shared load; their arms got the same speed (16.9 against 16.8 tok/s at 2400 s).
+4. Load during a trial is a condition the shown meter is meant to handle: it reports the last reply's seconds and
+   tokens per second, and its forecast uses the recent pace. Batch 3 adds delay on purpose to test this.
+5. What load does change is the level. With 1 request from others (5 running) each reply decodes at 0.89 times the
+   speed of the ablation alone (15.0 against 16.9 tok/s); 6 running is too rare in the history to measure, and the
+   trend from 1 to 5 points to about 0.8 times. All arms then fit fewer turns, so absolute scores are not comparable
+   with runs made under other loads. The frozen sensitivity analysis (trials with other users' load below 0.5)
+   covers this.
 
 ## Clock drift (validity check)
 
@@ -524,7 +553,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
 | 4. Task and environment list | `pilot/tasks.md`, `pilot/excluded.md`, task images from SWE-bench | |
 | 5. One full success and one timeout trajectory | Candidates in the smoke jobs | Picked from batch 2 when it has run |
 | 6. Analysis scripts and configs | `plan_metrics.py`, `ablation_report.py`, `pilot/pilot_report.py`, `proxy_report.py`, `event_log.py`; all configs in the repo | |
-| 7. Real cost report | Self-hosted: server-hours per solved task from the vllmtop history (section "Self-hosted cost"; `server_hours.py`) | The server's GPU count and a price per GPU-hour for dollars; a hosted API bill needs the p9 batch (the user's decision) |
+| 7. Real cost report | Self-hosted: server-hours per solved task from the vllmtop history (section "Self-hosted cost"; `server_hours.py`) | The server's GPU count and a price per GPU-hour for dollars; no hosted API bill (no money for hosted APIs, the user, 2026-11-12) |
 | 8. Known failure modes, scope, how to turn it off | Package README "Known failure modes, where it helps, how to turn it off" (harbor `6a7198c6`): 9 failure modes seen in the runs, each with its numbers and its guard; the scope from the finished runs; `feedback: hidden` keeps only the stop | Batch 2's report check will add the false-claim rate |
 
 ## Ideas to test (new, beyond the plan)
@@ -687,3 +716,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   Harbor's Codex agent (OpenAI responses format, unchanged) on one task, wrap-up notice at 231 s of 300 s, answer at
   263 s, reward 1. The run report could not match it to its trial, because Codex sends its environment context as a
   user message before the task; v21 records every user message of a run's first request.
+- 2026-11-12 13:27: the gate still waits (0 to 4 requests from others in the last hour; the longest quiet stretch
+  was 8 of the 10 minutes, 12:52 to 12:59). The user: no money for hosted APIs, so p9 is not run. The user asked
+  whether other users' load affects the clock: per-request speed against load measured over the whole history
+  (section "Quiet-start gate"); the arms share the load, so the gate protects only the start.
