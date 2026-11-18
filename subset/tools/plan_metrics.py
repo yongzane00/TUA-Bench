@@ -49,7 +49,7 @@ def trials(run, budget):
                     datetime.fromisoformat(ae["started_at"].rstrip("Z"))).total_seconds()
         elapsed = bud.get("elapsed_sec", wall)
         by_time = bud.get("stop") == "time" or exc == "AgentTimeoutError"
-        out.append(dict(task=os.path.basename(os.path.dirname(p)).split("__")[0], reward=rw, solved=rw >= 1,
+        out.append(dict(task=os.path.basename(os.path.dirname(p)).rsplit("__", 1)[0], reward=rw, solved=rw >= 1,
                         cost=ar.get("cost_usd") or 0.0, by_time=by_time, elapsed=elapsed, wall=wall,
                         overrun=(elapsed - budget) if (elapsed is not None and elapsed >= budget - 1) else None,
                         dir=os.path.dirname(p)))

@@ -52,7 +52,7 @@ def load_arm(model, cfg):
             rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward", 0) or 0
             bud = ((r.get("agent_result") or {}).get("metadata") or {}).get("budget") or {}
             exc = (r.get("exception_info") or {}).get("exception_type")
-            out.append(dict(task=os.path.basename(os.path.dirname(p)).split("__")[0], reward=rw, solved=rw >= 1,
+            out.append(dict(task=os.path.basename(os.path.dirname(p)).rsplit("__", 1)[0], reward=rw, solved=rw >= 1,
                             cost=(r.get("agent_result") or {}).get("cost_usd") or 0.0,
                             by_time=bud.get("stop") == "time" or exc == "AgentTimeoutError",
                             t0=ts(ae["started_at"]), t1=ts(ae["finished_at"]), job=os.path.basename(job.rstrip("/"))))

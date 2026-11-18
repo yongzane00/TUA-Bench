@@ -59,7 +59,7 @@ def load(model, run):
         # but not in the trajectory steps; bill the difference at the uncached price
         ar = d.get("agent_result") or {}
         cost += max(0, (ar.get("n_input_tokens") or 0) - sum(P)) * pin + max(0, (ar.get("n_output_tokens") or 0) - sum(C)) * pout
-        by_task[os.path.basename(t).split("__")[0]].append((d["started_at"], float(rw), cost))
+        by_task[os.path.basename(t).rsplit("__", 1)[0]].append((d["started_at"], float(rw), cost))
     for v in by_task.values():
         v.sort()
     n_att = min(len(v) for v in by_task.values())

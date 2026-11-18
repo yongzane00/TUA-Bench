@@ -18,7 +18,7 @@ for t in sorted(d for d in run.iterdir() if d.is_dir()):
     e = r.get("agent_execution") or {}
     wall = (ts(e["finished_at"]) - ts(e["started_at"])).total_seconds() if e.get("finished_at") else None
     ag = r.get("agent_result") or {}
-    rows.append((t.name.split("__")[0], t.name.split("__")[1], rew, ex, wall,
+    rows.append((*t.name.rsplit("__", 1), rew, ex, wall,
                  ag.get("n_input_tokens"), ag.get("n_output_tokens")))
 
 rows.sort()

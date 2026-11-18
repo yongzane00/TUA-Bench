@@ -84,7 +84,7 @@ def make(model, variant, since=None):
     if not failed:
         print(f"{model}/{variant} {os.path.basename(run)}: nothing to re-run")
         return
-    count = collections.Counter(os.path.basename(t).split("__")[0] for t in failed)
+    count = collections.Counter(os.path.basename(t).rsplit("__", 1)[0] for t in failed)
     for root in {REPO, WSL_REPO}:
         if not root.exists():
             continue
@@ -127,10 +127,10 @@ def merge(model, variant, apply):
     pool = collections.defaultdict(list)
     for t in sorted(rerun.glob("*__*")):
         if not setup_failed(t):
-            pool[t.name.split("__")[0]].append(t)
+            pool[t.name.rsplit("__", 1)[0]].append(t)
     swaps = []
     for old in failed:
-        task = old.name.split("__")[0]
+        task = old.name.rsplit("__", 1)[0]
         if pool[task]:
             swaps.append((old, pool[task].pop(0)))
     print(f"original {orig}\nre-run   {rerun}")

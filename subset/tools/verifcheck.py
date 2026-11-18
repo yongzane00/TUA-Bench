@@ -24,7 +24,7 @@ for p in sorted(glob.glob(os.path.join(R, "*", "result.json"))):
     rw = next(iter((d.get("verifier_result") or {}).get("rewards", {}).values()), None)
     vdir = os.path.join(os.path.dirname(p), "verifier")
     files = len(os.listdir(vdir)) if os.path.isdir(vdir) else -1
-    task = os.path.basename(os.path.dirname(p)).split("__")[0]
+    task = os.path.basename(os.path.dirname(p)).rsplit("__", 1)[0]
     rows.append((dur, task, rw, ex, files))
 
 rows.sort()

@@ -40,7 +40,7 @@ def trial_report(trial_dir: Path) -> None:
     env_s = wall - llm_s
     out_tok = (result.get("agent_result") or {}).get("n_output_tokens") or 0
 
-    name = trial_dir.name.split("__")[0]
+    name = trial_dir.name.rsplit("__", 1)[0]
     print(f"  {name:<28} wall={wall:7.0f}s  llm={llm_s:6.0f}s ({llm_s / wall * 100:4.1f}%)  "
           f"env={env_s:7.0f}s ({env_s / wall * 100:4.1f}%)  calls={calls:3d}  "
           f"out_tok/s={out_tok / llm_s if llm_s else 0:5.1f}")

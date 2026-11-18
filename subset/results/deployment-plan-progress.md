@@ -720,3 +720,78 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   was 8 of the 10 minutes, 12:52 to 12:59). The user: no money for hosted APIs, so p9 is not run. The user asked
   whether other users' load affects the clock: per-request speed against load measured over the whole history
   (section "Quiet-start gate"); the arms share the load, so the gate protects only the start.
+- 2026-11-13 11:09: the gate opened after 49 hours of waiting (server at 0 from 10:58; 19 of the 60 minutes before
+  11:23 had no requests from others). Batch 1 round 1 started: the four arms launched 11:10 to 11:13, one trial each
+  side by side; at 11:25 all four were still building the first task's image (load average 24).
+- 2026-11-13 11:47: round 1 check. All four arms reached the agent (8 to 10 turns each on task 009, no errors in the
+  trial logs). Each arm shows what it should: I0 no budget text, I1 the budget sentence once, I2 the clock line only
+  (`[Time 87 of 2400 s, 2313 s left]`), I3 the full meter (`... | last reply 31 s at 12 tok/s | about 67 turns fit`).
+  Replies ran at 8 to 15 tok/s per request with four arms plus other users on the server.
+- 2026-11-13 19:00: the user asked whether sharing the server with other users' runs skews the results. Since the
+  start (11:10 to 19:00), 4 to 7 requests were usually running on the server (my 4 plus 0 to 4 from others), the KV
+  cache reached full, and some request was queued in 2410 of 28847 seconds. TTFT stayed short (median 1.75 s, p95
+  under 5 s at every load level). Per arm, from agent start to end of each finished trial:
+
+  | Arm | Trials | Mean requests running | Seconds with any request queued, per trial | Per-request tok/s |
+  |---|---|---|---|---|
+  | I0 hidden | 15 | 5.5 | 124 (max 507) | 13.9 |
+  | I1 once | 15 | 5.4 | 145 (max 1077) | 14.0 |
+  | I2 clock | 14 | 5.3 | 148 (max 1065) | 14.0 |
+  | I3 meter | 14 | 5.3 | 160 (max 1094) | 14.0 |
+
+  The arms run at the same time, so they share the load almost equally: the comparison between arms holds, the
+  absolute scores are lower than on a quiet server. The queued seconds are an upper bound on time lost (any request
+  queued, not necessarily ours). Plan: report these load columns per arm and per trial with the ablation result.
+- 2026-11-13 19:20: the user pointed out that the report's runs had the server to themselves (at most 4 requests, all
+  from TUA-Bench), so the clock they were scored on ran under a lighter load. The meter lines the model saw confirm a
+  difference: report run `harness7-time2400-attempt5/2026-10-08__15-37-09` replies at median 17 tok/s, 32 s per reply
+  (90th percentile 97 s, 2176 replies); ablation arm I3 so far median 13 tok/s, 41.5 s (90th percentile 167 s, 194
+  replies). A reply takes about 1.3 times as long at the median and 1.7 times at the 90th percentile, so a 2400 s
+  budget holds fewer turns. The ablation's scores are therefore not comparable with the report's, and the gap between
+  arms may also differ under this load. Asked the user whether to continue it as a shared-load condition or stop it.
+- 2026-11-13 21:00: the user chose to finish batch 1 as a separate "shared server" condition (option A): all three
+  rounds, reported with the load per arm and per trial, never compared with the report's numbers. Rule from now on
+  (the user): no benchmark runs while other users share the model server. Batches 2 to 4 start only on a server
+  serving TUA-Bench alone (at most 4 requests, all ours), in a window arranged with the user.
+- 2026-11-14 10:53: batch 1 round 1 finished (shared server). Fully solved, of 40: I0 hidden 14, I1 once 16, I2 clock
+  15, I3 meter 15; hit the 2400 s limit: 13, 17, 11, 10. No other errors. Round 2 waits for the gate.
+- 2026-11-15 10:53: batch 1 round 2 finished 2026-11-15 09:35 (shared server). Fully solved, of 40: I0 hidden 15,
+  I1 once 17, I2 clock 19, I3 meter 17; hit the 2400 s limit: 14, 14, 10, 8. No other errors. Over two rounds the
+  meter arm hits the limit least (18 of 80, against 27 of 80 hidden). Round 3 waits for the gate.
+- 2026-11-16 08:20: batch 1 round 3 finished 2026-11-16 02:18; all 3 rounds done. Round 3 fully solved, of 40: I0 17,
+  I1 19, I2 17, I3 17; hit the 2400 s limit: 10, 10, 7, 8; no other errors. Loop paused at the user's request
+  (machine shutdown); no new runs until the user says so.
+- 2026-11-18 15:30: the user freed the server for our runs ("the server is free for you to use") and asked for the
+  loop to resume. WSL harbor got v18 (`budget_meter.py`, real-time clock deadline); WSL `lite_llm.py` keeps its
+  ChatGPT patch (the Windows copy lacks it; not used by qwen runs). 90 s smoke check with the WSL code started.
+- 2026-11-18 15:35: batch 1 report (`ablation_report.py ... --vs I3`, shared-server condition, 3 rounds, 480 of 480
+  trials, no errors). Solved of 120: I0 hidden 46, I1 once 52, I2 clock 51, I3 meter 49; gaps vs I0: +6 (-3 to +16),
+  +5 (-4 to +14), +3 (-4 to +10); all inside the noise. Ended by time: 37, 41, 28, 26 of 120. $ per solved: $0.0789,
+  $0.0654, $0.0721, $0.0580. On quiet trials (other users' load below 0.5; 135 of 480, an easier task mix) the arms
+  are equal within 4 of about 34. Reading: under shared load no feedback level beats hidden on solved tasks; the
+  clock and the meter cut time-limit endings by about a quarter to a third, and the meter has the lowest $ per
+  solved. The plan's choice between levels is not decided by this batch; batch 2 keeps `full` as frozen.
+- 2026-11-18 15:23: smoke check with the WSL v18 code (`swe-smoke-wall-time90/2026-11-18__15-10-09`, 3 trials, 2 of 3
+  solved): work lateness 0.2 to 1.0 s, delivery lateness 1.2 to 2.1 s. Batch 2 launched (tmux `b2`, gate log
+  `~/work/b2-gate.log`): hidden, full and wrap120 arms, 1 trial each, 3 rounds, on the server serving TUA-Bench alone.
+- 2026-11-18 15:45: batch 2 round 1 started 15:33 (arms 15:34, 15:35, 15:36). First trial of each arm checked: hidden
+  shows no budget text; full and wrap120 show the meter (`[Time 236 of 900 s, 664 s left | last reply 8.4 s at 20
+  tok/s | about 13 turns fit]`); 19 to 20 tok/s, the server running only our 3 trials. Harbor fork `572e6af1`,
+  `83e9be0d`: package release 0.2.0 (handover item 1) with a versions table in its README; mirrored to WSL.
+- 2026-11-18 16:00: batches 3 and 4 chained after batch 2 (tmux `chain`, log `~/work/chain.log`): batch 3 starts when
+  `b2-gate.log` says all 3 rounds are done, batch 4 (`run_cc_batch.sh 3`) when `b3-gate.log` does; every round still
+  waits for 10 quiet minutes. One trial per arm takes about 15 to 20 minutes, so a round of 20 tasks takes about
+  5 to 6 hours.
+- 2026-11-18 17:00: batch 2 round 1 at 19 of 60 trials (hidden 6 of 7 qualified, full 5 of 6, wrap120 5 of 6; no
+  errors; 1 stop by time per arm, delivery lateness 1.4 to 1.8 s). `pilot_report.py` runs on the new trials and its
+  blinded packets carry no meter line or wrap-up notice. Plan for the report check (handover item 8): once batch 2
+  ends, a fresh reviewer agent that sees only the packets (not `key.json`) marks each false verification claim; the
+  key is joined afterwards.
+- 2026-11-18 20:00: batch 2 round 1 finished 19:53 (60 of 60 trials, no errors, other users' load 0.04 on average:
+  the server served TUA-Bench alone). Qualified, of 20: hidden 14, full 15, wrap120 16; ended by time: 8, 3, 5;
+  $ per qualified $0.0291, $0.0236, $0.0223; wrong declarations 2 of 14, 4 of 17, 1 of 17; P95 delivery lateness
+  1.8, 1.8, 1.5 s (target 5 s); no stop left a process running. Fix: the report scripts took the task name as the
+  text before the first `__`, so every SWE-bench trial (`django__django-11099__<id>`) counted as one task "django"
+  and the paired gaps used 1 task; they now cut at the last `__` (`ablation_report.py`, `plan_metrics.py` and the
+  other TUA tools; `plot_budget_curve.py` has the same line and is left for the user's pending edits). With 20 tasks:
+  full - hidden +1 (+0 to +3), wrap120 - hidden +2 (+0 to +5). Round 2 waits for the gate.

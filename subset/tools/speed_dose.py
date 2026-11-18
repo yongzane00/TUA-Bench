@@ -53,7 +53,7 @@ def load(model, cache):
             r = json.loads((t / "result.json").read_text(encoding="utf-8"))
             rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward", 0) or 0
             sp = trial_speed(t)
-            out.append(dict(task=t.name.split("__")[0], arm=arm, budget=b, solved=int(rw >= 1),
+            out.append(dict(task=t.name.rsplit("__", 1)[0], arm=arm, budget=b, solved=int(rw >= 1),
                             speed=sp[0] if sp else None, llm_sec=sp[1] if sp else None))
     if cache:
         json.dump(out, open(cache, "w"))
