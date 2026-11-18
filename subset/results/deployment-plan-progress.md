@@ -833,5 +833,6 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   show or contradicts (5). The reviewer groups differed in strictness (1 to 6 flags per about 29 packets); arms
   are mixed across groups by the random ids, so the arm comparison is fair, but single counts carry that reviewer
   noise. Reading: the clock does not raise false claims (full has the fewest); the full arm's extra wrong
-  declarations (11 of 51) are mostly honest reports of checks that passed locally while the hidden tests failed.
+  declarations (11 of 51) are not explained by false claims (3 in that arm), so most of them are reports whose
+  stated checks are real while the hidden grading tests failed.
   Verdicts with arm and trial: `pilot/report-check-batch2.json`.
