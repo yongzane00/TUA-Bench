@@ -610,6 +610,8 @@ The plan lists eight checks the plugin must pass and eight items a handover must
 | v19 | harbor | `8cee7b44` | Proxy and launcher `--cap-tool-timeout TOOL:FIELD:UNIT[:DEFAULT]` and `--cap-margin`: a tool call reaches the agent with its timeout no longer than the time left minus the margin (all three formats, streamed or not); later requests carry the model's own value back; `tool_capped` events. 50 of 50 package tests. Self-tests with Claude Code 2.1.322: the command is ended at the deadline only with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` |
 | v20 | harbor | `bb0307c9` | A failed model call is not a turn (plan p11 retry timing): counted in `failed_calls`, its time in the turn of the retry; tests for retries (loop and proxy) and a failing LangChain tool. 54 of 54 package tests |
 | v21 | harbor | `e6528875` | The proxy records every user message of a run's first request (`user_text`), not only the first: Codex sends its environment context as a user message before the task, so its run could not be matched to its trial. `proxy_report.py` reads `user_text` (and `first_user` in older logs). 55 of 55 package tests |
+| v22 | harbor | `519886a6` | A command wait cut by the hard deadline ends the attempt at once with no screen read; cleanup timed apart (`interrupt_sec`, `diff_sec`). In the Windows copy; WSL gets it after batch 4 |
+| 0.2.0 | harbor | `572e6af1`, `83e9be0d` | `time-budget` package release number and versions table (handover item 1) |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
 
@@ -836,3 +838,11 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   declarations (11 of 51) are not explained by false claims (3 in that arm), so most of them are reports whose
   stated checks are real while the hidden grading tests failed.
   Verdicts with arm and trial: `pilot/report-check-batch2.json`.
+- 2026-11-19 05:30: batch 3 round 1 started 04:35 (4 arms, 1 trial each, server serving TUA-Bench alone). Each arm
+  checked: `extra_reply_delay_sec` 5 or 20 and feedback hidden or full as configured; the meter counts the delay in
+  the reply time (`last reply 30 s at 5 tok/s` at +20 s), as the design intends. 18 of 80 round-1 trials done, no
+  errors.
+- 2026-11-19 06:40: v22 (harbor fork, Windows copy only; WSL keeps the frozen code until batch 4 ends): when the hard
+  deadline cuts a command wait, the agent stops at once and no longer reads the screen (no reply follows, so the read
+  only adds lateness); the metadata now splits the cleanup into `interrupt_sec` (Ctrl-C) and `diff_sec` (saved diff).
+  64 of 64 agent tests pass. Batch 3 round 1: 35 of 80 trials, no errors.
