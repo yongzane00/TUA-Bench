@@ -47,8 +47,10 @@ def load_arm(model, cfg):
         for p in glob.glob(job + "*__*/result.json"):
             r = json.load(open(p))
             ae = r.get("agent_execution") or {}
-            if not ae.get("started_at") or not ae.get("finished_at"):
-                continue
+            if not ae.get("started_at") or not ae.get("finished_at"):  # e.g. agent setup failed: a failure, kept
+                ae = r if r.get("started_at") and r.get("finished_at") else None  # (analysis plan: no trial dropped)
+                if ae is None:
+                    continue
             rw = ((r.get("verifier_result") or {}).get("rewards") or {}).get("reward", 0) or 0
             bud = ((r.get("agent_result") or {}).get("metadata") or {}).get("budget") or {}
             exc = (r.get("exception_info") or {}).get("exception_type")

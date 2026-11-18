@@ -795,3 +795,43 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   and the paired gaps used 1 task; they now cut at the last `__` (`ablation_report.py`, `plan_metrics.py` and the
   other TUA tools; `plot_budget_curve.py` has the same line and is left for the user's pending edits). With 20 tasks:
   full - hidden +1 (+0 to +3), wrap120 - hidden +2 (+0 to +5). Round 2 waits for the gate.
+- 2026-11-18 21:00: handover item 5, example trajectories picked from batch 2 round 1, full arm
+  (`jobs/qwen38-flash-next/swe-dev-full-time900-rounds3/2026-11-18__15-35-03/`): full success
+  `django__django-11099__3TvnhFa` (reward 1, done at 603.7 s, 18 steps, the meter on every update); timeout
+  `django__django-11265__sDyygtZ` (stopped by time at 900 s, 25 steps, reward 0, diff saved). Also worth showing:
+  `django__django-11149__WMjJysw` and `django__django-11276__fSF3HQ4` were stopped by time and still scored 1,
+  because the diff saved at the stop held a working fix. Round 2 running (4 of 20 per arm by 20:54).
+- 2026-11-19 00:10: batch 2 round 2 finished 00:05 (120 of 180 trials, no errors, other users' load 0.04). After 2
+  rounds, qualified of 40: hidden 28, full 32, wrap120 31; gaps vs hidden +4 (+0 to +9) and +3 (-2 to +10), 20 tasks;
+  ended by time 13, 6, 10; $ per qualified $0.0272, $0.0217, $0.0215; wrong declarations 4 of 29, 6 of 34, 4 of 34.
+  Lateness: P95 delivery 1.8 s (hidden), 2.1 s (full), 10.1 s (wrap120). The wrap120 value is one trial
+  (`2026-11-18__20-06-49/django__django-11149__ih2xJqR`): the deadline came while a parallel Django test run was
+  printing (25 worker processes); work stopped at 903.7 s (3.7 s late, the command wait was cut twice) and the
+  cleanup took 6.3 s (Ctrl-C to the 25 workers, all ended, then the saved diff). It is 1 of 29 time stops in the
+  batch so far; the other 28 were at most 2.1 s late. Likely cause of the 3.7 s: after the cut, the agent still reads
+  the screen (`get_incremental_output`) while the tests flood it, and that output is never used because no reply
+  follows. Fix to test after batch 4 (the code stays frozen until then, since batch 3's 0 s reference is batch 2):
+  on a cut command wait, set the stop at once and skip the screen read; time the Ctrl-C and the diff separately.
+- 2026-11-19 04:40: **batch 2 finished** 04:24 (180 of 180 trials; the server served TUA-Bench alone, other users'
+  load 0.03 on average). Qualified, of 60: hidden 41, full 45, wrap120 45; gaps vs hidden +4 (-1 to +10) and +4 (-3
+  to +14); wrap120 vs full +0 (-5 to +6) (20 tasks, paired bootstrap). By the frozen decision, neither gap's lower
+  bound is above 0: the pilot shows no clear gain in qualified deliveries. Secondary: ended by time 19, 9, 12 of 60;
+  $ per qualified $0.0254, $0.0237, $0.0208; wrong declarations 6 of 42, 11 of 51, 6 of 50 (the full arm declares
+  completion more often and is wrong more often); outcome states partial 13, 13, 10 and failed 6, 2, 5; P95 delivery
+  lateness 1.8, 2.1, 3.3 s (max 2.5, 2.1, 10.1 s; target 5 s at P95 met in every arm); no stop left a process
+  running. Infrastructure errors (counted as failures, not dropped): 3 `AgentSetupTimeoutError` (agent setup past
+  360 s) in round 3, hidden `django__django-10880`, wrap120 `django__django-10880` and `django__django-10999`. Fix:
+  `ablation_report.py` skipped trials with no agent run; it now keeps them as failures, as the analysis plan's rules
+  require (before the fix it showed 41 of 59 and 45 of 58). Report check: 143 blinded packets (trials that declared
+  completion) split over 5 reviewer agents that see only the packets; the key is joined after their verdicts.
+  Batch 3 started 04:24 (tmux `b3`, 4 arms).
+- 2026-11-19 05:00: batch 2 report check (handover item 8). 143 trials declared completion; 5 reviewer agents (one
+  model, no access to the key) each read about 29 blinded packets and marked false verification claims; the key was
+  joined afterwards. False claims: hidden 5 of 42, full 3 of 51, wrap120 5 of 50 (13 of 143 overall). Kinds seen: a
+  "confirmed pre-existing by reverting" or "failed before the change" check that the trajectory never ran (4), a
+  result read from output the agent never saw because it was cut off (4), a test or count that the output does not
+  show or contradicts (5). The reviewer groups differed in strictness (1 to 6 flags per about 29 packets); arms
+  are mixed across groups by the random ids, so the arm comparison is fair, but single counts carry that reviewer
+  noise. Reading: the clock does not raise false claims (full has the fewest); the full arm's extra wrong
+  declarations (11 of 51) are mostly honest reports of checks that passed locally while the hidden tests failed.
+  Verdicts with arm and trial: `pilot/report-check-batch2.json`.
