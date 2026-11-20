@@ -612,6 +612,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
 | v21 | harbor | `e6528875` | The proxy records every user message of a run's first request (`user_text`), not only the first: Codex sends its environment context as a user message before the task, so its run could not be matched to its trial. `proxy_report.py` reads `user_text` (and `first_user` in older logs). 55 of 55 package tests |
 | v22 | harbor | `519886a6` | A command wait cut by the hard deadline ends the attempt at once with no screen read; cleanup timed apart (`interrupt_sec`, `diff_sec`). In the Windows copy; WSL gets it after batch 4 |
 | v23 | harbor | `c6193f7b` | At a budget stop: Ctrl-C, then SIGKILL after 1 s for what still runs, in one call into the container (was up to two Ctrl-Cs 1 s apart, each its own call); `sigkill` count recorded. Windows copy; WSL after batch 4 |
+| v24, v25 | harbor | `fb148dfe` | The stop is one `docker exec` (listing, Ctrl-C, 1 s, listing; SIGKILL only for what is left); a timer started inside the container when a turn's waits reach the deadline sends Ctrl-C at the deadline itself; stop parts timed (`stop_sec`, `kill_sec`, `timer_late_sec`, `diff_sec`) |
 | 0.2.0 | harbor | `572e6af1`, `83e9be0d` | `time-budget` package release number and versions table (handover item 1) |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
@@ -914,3 +915,22 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   tool calls with a lowered timeout 131 (33 trials) and 107 (31 trials). Lateness median 0.2 s in both arms, but
   P95 457 s (hidden) and 416 s (full) from the WebFetch sub-requests that get their own clock (finding of 16:20).
   All four batches are done; the server is free of our runs.
+- 2026-11-20 19:10: after batch 4, WSL harbor got v22 and v23 (`budget_meter.py`; the freeze for batches 2 to 4 is
+  over). Lateness check started: `swe-latecheck-full-time900` (the batch 2 full config, 3 attempts on the 4 tasks
+  whose stops ran late: django 11149, 11095, 11276, 11141; 3 trials at once; server serving TUA-Bench alone).
+  Question: with v22 and v23, are stops during a parallel test run within 5 s?
+- 2026-11-20 20:10: lateness check finished (`swe-latecheck-full-time900/2026-11-20__19-*`, 12 of 12 trials, no
+  errors, 7 of 12 qualified): 5 stops by time, delivery 1.2 to 1.5 s late, work 0.0 to 0.2 s late; none of them fell
+  in a test run (0 foreground jobs at the stop), so the bad case did not recur by chance. A scripted self-test now
+  forces it: `pilot/selftest/selftest-testflood.yaml` (script `testflood`: a 26-worker Django test run with verbose
+  output, waited 120 s, budget 40 s, 3 trials, no model server). Also ready: `cc-dev-{hidden,full}-noweb-
+  time900-rounds3` (batch 4 configs with `disallowed_tools: "WebFetch WebSearch"`; `TAG=-noweb
+  bash subset/tools/run_cc_batch.sh`), for a repeat of batch 4 without the web leak and the WebFetch clock.
+- 2026-11-20 20:45: lateness during a test flood, fixed. The self-test `selftest-testflood.yaml` (26-worker Django
+  test run with verbose output, 40 s budget, 3 trials per version) reproduces batch 3's late stops; delivery
+  lateness by version: v23 10.0 to 13.2 s (work stopped on time, cleanup 10 to 13 s); split timing showed each
+  `docker exec` takes 4 to 9 s under that load (listing 5.7 to 6.1 s, stop call 3.8 to 6.5 s); v24 (one call) 7.7
+  to 10.1 s; v25 (Ctrl-C from a timer inside the container) **3.7 to 4.5 s**, within the 5 s target; work stopped
+  at 40.0 to 40.1 s in every trial. The timer still fires 2.2 to 2.6 s after the deadline under that load, and
+  0 or 1 process needed SIGKILL. A bug found on the way: Docker's exec merges stderr into stdout, so the kill
+  markers are now read from both. 66 of 66 agent tests pass; WSL harbor has v25.

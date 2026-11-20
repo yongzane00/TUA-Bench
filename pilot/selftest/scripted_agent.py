@@ -41,6 +41,15 @@ SCRIPTS = {
                      ("sleep 600\n", 1.0)])),
         (60.0, reply([("", 1.0)])),
     ],
+    # Stop during a flood of test output (the case behind batch 3's late stops, 2026-11-19): a parallel Django test
+    # run with 26 workers and verbose output, waited 120 s, so the 40 s deadline (selftest-testflood.yaml) cuts the
+    # wait while the workers still print. Checks v22 (no screen read after the cut) and v23 (Ctrl-C, then SIGKILL).
+    "testflood": [
+        (2.0, reply([("echo '# selftest' >> /testbed/README.rst\n", 0.5),
+                     ("cd /testbed/tests && python runtests.py --parallel 26 -v 2 admin_views admin_inlines "
+                      "model_forms forms_tests\n", 120.0)])),
+        (60.0, reply([("", 1.0)])),
+    ],
     # Plugin-off check: the same short conversation for stock terminus-2 and for H7 with each feedback level.
     # Commands with fixed output (no progress meters); 8 s replies so that concurrent trials overlap.
     "baseline": [
