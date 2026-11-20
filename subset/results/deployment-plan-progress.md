@@ -969,4 +969,4 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   (11 of 51). Claude Code's extra finishes are solved 10 of 11 (from 25 of 26 to 35 of 37). So both harnesses
   finish more often with the clock; Claude Code turns that into solved tasks, terminus-2 partly into early
   "done" claims. A lead for the next version: pair the clock with a check before "done" in terminus-2 (H5's
-  verifier did not help on its own, 2025-10-06; with the clock the early-finish case is where it would act).
+  verifier did not help on its own, run of 2026-10-06; with the clock the early-finish case is where it would act).
