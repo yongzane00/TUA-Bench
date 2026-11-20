@@ -958,3 +958,15 @@ The plan lists eight checks the plugin must pass and eight items a handover must
 - 2026-11-21 05:40: held-out check done: all 40 held-out tasks reproduce (oracle 1 and 1, nop 0); over all 62 checked
   pilot tasks, 60 reproduce (the 2 failures are the known excluded dev tasks). Grading time on the held-out tasks,
   median about 27 s, max 79 s. Batch 5 can run on all 40 once the user agrees to spend the held-out set.
+- 2026-11-21 06:50: why the clock helps Claude Code (no-web repeat, 60 trials per arm, proxy matching). Trials that
+  ended on their own were solved 25 of 26 (hidden) and 35 of 37 (full); trials cut at the deadline 11 of 34 and 10 of
+  23. So the solve rate within each kind of ending is the same in both arms; the clock moves 11 trials from "cut at
+  the deadline" to "finished in time" (26 -> 37 of 60), and almost all of those are solved: the +9 comes from more
+  attempts reaching their own finish, not from better work inside an attempt. The same split for the Harbor agent
+  (batch 2): finished on its own 34 of 40 (hidden), 40 of 51 (full), 41 of 46 (wrap120); cut at the deadline 7 of
+  19, 5 of 9, 4 of 12; 1 and 2 setup errors. The clock moves 11 trials to "finished" here too (40 -> 51), but they
+  convert worse: the finishing solve rate falls from 34 of 40 to 40 of 51, matching the extra wrong declarations
+  (11 of 51). Claude Code's extra finishes are solved 10 of 11 (from 25 of 26 to 35 of 37). So both harnesses
+  finish more often with the clock; Claude Code turns that into solved tasks, terminus-2 partly into early
+  "done" claims. A lead for the next version: pair the clock with a check before "done" in terminus-2 (H5's
+  verifier did not help on its own, 2025-10-06; with the clock the early-finish case is where it would act).
