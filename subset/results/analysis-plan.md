@@ -94,6 +94,25 @@ agent through the proxy (`time_budget.proxy`, harbor fork `5bae9619`), shows the
 both sides) or "hurts" (upper bound below 0). A run with any failed proxy match is reported with its count, and the
 affected trials are listed; they are not dropped.
 
+## Batch 5 (proposed 2026-11-21, not started; waits for the user's go-ahead): held-out confirmation
+
+The dev results (batch 4 and its no-web repeat) chose one configuration: Claude Code through the proxy with
+`--feedback full`, WebFetch and WebSearch off. Batch 5 runs it once on the held-out tasks, which no run has used.
+
+| Item | Fixed value |
+|---|---|
+| Tasks | The 40 held-out tasks in `pilot/tasks.md` (2022-01-27 to 2023-07-17), minus any that fail the oracle / nop check (`pilot/configs/{oracle,nop}-heldout.yaml`, done before this batch); excluded tasks are listed, not replaced |
+| Arms | `cc-heldout-hidden-noweb-time900-rounds3`, `cc-heldout-full-noweb-time900-rounds3` (the no-web dev configs with the held-out task list) |
+| Budget | 900 s, as batch 4 |
+| Size | 3 rounds per arm, 2 trials per arm at once (4 at once), quiet-start rounds; about 16 h on a server serving TUA-Bench alone |
+| Primary metric | Reward 1, x of (tasks x 3) per arm |
+| Comparison | Full - hidden gap, paired bootstrap over tasks, 4000 resamples, seed 0 |
+| Secondary | As batch 4 (lateness, stopped by time, replies, lowered tool timeouts, proxy matching) |
+
+**Decision.** The dev result "holds on held-out tasks" if the gap's 95% lower bound is above 0; "no harm" if it is
+above -3 per 60 trials (scaled to the task count); otherwise "uncertain" or "hurts" as in batch 4. Whatever the
+result, the held-out set is then spent: no further tuning is reported on it.
+
 ## Rules for all batches
 
 - No trial is dropped after the fact. A trial with an infrastructure error counts as a failure (missing reward = 0,

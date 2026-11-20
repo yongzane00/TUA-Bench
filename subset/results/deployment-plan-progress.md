@@ -949,3 +949,9 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   met); stopped by time 34 vs 23 of 60; last in-time reply median 812 and 803 s; tool calls with a lowered timeout
   175 (43 trials) and 143 (40 trials). Reading: the second-harness result replicates without the web leak and with
   every stop on time; the clock gives Claude Code 9 more solved of 60 on these 20 tasks, twice in a row.
+- 2026-11-21 05:00: held-out set prepared, not used. The 40 held-out pilot tasks had never been checked; the oracle
+  (2 attempts) and nop checks run now (`pilot/configs/{oracle,nop}-heldout.yaml`; no model sees the tasks, so the
+  set stays unspent). Batch 5 (held-out confirmation of Claude Code no-web, full vs hidden, 3 rounds, about 16 h) is
+  written into the analysis plan with its decision rule and configs (`cc-heldout-{hidden,full}-noweb-
+  time900-rounds3`; `SET=heldout TAG=-noweb bash subset/tools/run_cc_batch.sh`), and waits for the user's
+  go-ahead: running it spends the held-out set, which is the user's call.

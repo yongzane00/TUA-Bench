@@ -1,0 +1,74 @@
+# qwen38-flash-next/cc-heldout-full-noweb-time900-rounds3 - PROPOSED batch 5 (not run; needs the user's go-ahead):
+# the cc-dev-full-noweb config on the 40 held-out pilot tasks. Origin: batch 4 config plus disallowed_tools (2026-11-20): WebFetch and
+# WebSearch off. In batch 4 they fetched Django's upstream fixes and a WebFetch sub-request got its own proxy clock
+# (trials up to 812 s late). Run with TAG=-noweb bash subset/tools/run_cc_batch.sh. Batch 4 header:
+# written by hand (not from make_variant.py): batch 4 of
+# subset/results/analysis-plan.md. Harbor's claude-code agent, unchanged and pinned to one version, on qwen3.8 through
+# the time-budget proxy for the full arm (port 8912; started by subset/tools/run_cc_batch.sh with
+# --feedback full --budget 900 --report-request --track-conversations --cap-tool-timeout Bash:timeout:ms:120000
+# --cap-margin 3.5). The container reaches the proxy as host.docker.internal; no Anthropic API is called.
+# CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1: a Bash command whose timeout the proxy lowered to the time left is
+# ended at that timeout instead of moved to the background (Harbor turns background tasks on; checked with
+# pilot/selftest/selftest-cc-timeout*.yaml). The model aliases are the ones Harbor sets itself when the proxy
+# address comes from the shell environment instead of env below.
+#
+#   bash subset/tools/run_cc_batch.sh      (proxies + quiet-start rounds for both arms)
+n_attempts: 1
+n_concurrent_trials: 2
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-15368
+  - django__django-15380
+  - django__django-15382
+  - django__django-15499
+  - django__django-15525
+  - django__django-15569
+  - django__django-15572
+  - django__django-15695
+  - django__django-15731
+  - django__django-15732
+  - django__django-15741
+  - django__django-15863
+  - django__django-15930
+  - django__django-15973
+  - django__django-15987
+  - django__django-16082
+  - django__django-16116
+  - django__django-16136
+  - django__django-16139
+  - django__django-16145
+  - django__django-16255
+  - django__django-16333
+  - django__django-16429
+  - django__django-16454
+  - django__django-16485
+  - django__django-16493
+  - django__django-16502
+  - django__django-16527
+  - django__django-16569
+  - django__django-16595
+  - django__django-16612
+  - django__django-16662
+  - django__django-16667
+  - django__django-16801
+  - django__django-16819
+  - django__django-16877
+  - django__django-16899
+  - django__django-16901
+  - django__django-17029
+  - django__django-17087
+agents:
+- name: claude-code
+  model_name: qwen3.8-flash-next
+  kwargs:
+    version: "2.1.322"
+    disallowed_tools: "WebFetch WebSearch"
+  env:
+    ANTHROPIC_BASE_URL: http://host.docker.internal:8912
+    ANTHROPIC_API_KEY: EMPTY
+    CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
+    ANTHROPIC_DEFAULT_SONNET_MODEL: qwen3.8-flash-next
+    ANTHROPIC_DEFAULT_OPUS_MODEL: qwen3.8-flash-next
+    ANTHROPIC_DEFAULT_HAIKU_MODEL: qwen3.8-flash-next
+    CLAUDE_CODE_SUBAGENT_MODEL: qwen3.8-flash-next

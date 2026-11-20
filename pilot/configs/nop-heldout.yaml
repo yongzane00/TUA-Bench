@@ -1,0 +1,51 @@
+# Negative check of the 40 held-out pilot tasks: Harbor's nop agent changes nothing, so every task must score 0.
+#
+#   cd ~/work/TUA-Bench
+#   uv run --no-sync harbor run -c pilot/configs/nop-heldout.yaml -o <TUA-Bench on C:>/jobs/pilot/nop-heldout --yes
+n_attempts: 1
+n_concurrent_trials: 3
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-15368
+  - django__django-15380
+  - django__django-15382
+  - django__django-15499
+  - django__django-15525
+  - django__django-15569
+  - django__django-15572
+  - django__django-15695
+  - django__django-15731
+  - django__django-15732
+  - django__django-15741
+  - django__django-15863
+  - django__django-15930
+  - django__django-15973
+  - django__django-15987
+  - django__django-16082
+  - django__django-16116
+  - django__django-16136
+  - django__django-16139
+  - django__django-16145
+  - django__django-16255
+  - django__django-16333
+  - django__django-16429
+  - django__django-16454
+  - django__django-16485
+  - django__django-16493
+  - django__django-16502
+  - django__django-16527
+  - django__django-16569
+  - django__django-16595
+  - django__django-16612
+  - django__django-16662
+  - django__django-16667
+  - django__django-16801
+  - django__django-16819
+  - django__django-16877
+  - django__django-16899
+  - django__django-16901
+  - django__django-17029
+  - django__django-17087
+agents:
+- name: nop
