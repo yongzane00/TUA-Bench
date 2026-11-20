@@ -905,3 +905,12 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   whatever still runs; 64 of 64 agent tests pass, and the shell code ended a process that ignores Ctrl-C in 1.2 s
   in a real bash. With v22 this targets both parts of the batch 3 lateness (work 0.5 to 6.9 s late, cleanup 5 to
   19 s). To check after batch 4: a smoke run whose deadline falls in a parallel Django test run.
+- 2026-11-20 19:00: **batch 4 finished** 18:52 (120 of 120 trials, no errors; the server ran only our 4 trials).
+  Reward 1, of 60: hidden 34, full 43; full - hidden **+9 (+2 to +17)**, 20 tasks, 4000 resamples, seed 0. Frozen
+  decision: the lower bound is above 0, so the clock **carries over to the second harness** (Claude Code, unchanged,
+  through the proxy). Sensitivity with every trial that used the web counted as unsolved (full 15 of 60, hidden 26
+  of 60 used it): +11 (+2 to +20). Proxy: 60 of 60 trials per arm matched to one run, 0 close calls; stopped by time
+  hidden 40 of 60, full 28 of 60; replies per trial, median, 18 and 14; last in-time reply, median, 791 s and 771 s;
+  tool calls with a lowered timeout 131 (33 trials) and 107 (31 trials). Lateness median 0.2 s in both arms, but
+  P95 457 s (hidden) and 416 s (full) from the WebFetch sub-requests that get their own clock (finding of 16:20).
+  All four batches are done; the server is free of our runs.
