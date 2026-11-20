@@ -876,3 +876,27 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   it polled "/metrics" and never saw a quiet server. Fixed: `METRICS_URL` override, passed by `run_parallel.sh` and
   set by `run_cc_batch.sh` from `UPSTREAM`; the gate now exits with a message when it has no URL. The batch 4 gate
   window was restarted with the URL at 10:09 (the arm windows and proxies kept running).
+- 2026-11-20 10:30: batch 4 round 1 started 10:19 (Claude Code 2.1.322 through the proxy, 2 trials per arm, 4 at
+  once; the server shows 4 running requests, all ours). Arms checked in the proxy event logs: full sends the meter
+  (`[Time 116 of 900 s, 784 s left | last reply 22 s at 14 tok/s | about 65 turns fit]`); hidden sends none (0 of 33
+  model inputs).
+- 2026-11-20 16:20: batch 4 rounds 1 and 2 finished (13:03 and 15:48; 80 of 80 trials, no errors); round 3 started
+  15:59. Reward 1, of 40: hidden 23, full 29; full - hidden **+6 (+1 to +12)**, 20 tasks: the first batch whose
+  lower bound is above 0 (frozen rule: "carries over to the second harness" if this holds after round 3). Proxy
+  matching: 40 of 40 trials per arm matched to one run, 0 close calls. Stopped by time (proxy): hidden 27 of 40,
+  full 18 of 40. (`ablation_report.py`'s "ended by time" and $ columns do not apply to Claude Code: it reads the
+  Harbor agent's stop flag, and harbor prices Claude Code's calls at Anthropic list prices.)
+  Two findings:
+  1. **Web access leaks fixes.** The task containers have internet. Claude Code used WebFetch, WebSearch or fetched
+     Django's GitHub sources in 18 of 40 (hidden) and 10 of 40 (full) trials, e.g. `raw.githubusercontent.com/
+     django/django/main/django/db/migrations/loader.py` (the current file holds the upstream fix). The Harbor agent
+     did it far less (batch 2: 1, 1, 3 of about 60 per arm; batch 3: 1 to 7). Sensitivity (all trials kept, a
+     trial that used the web counted as unsolved): batch 4 full - hidden +10 (+2 to +18) instead of +6; batch 2
+     +3 (-2 to +9) instead of +4. The batch 4 gap does not come from the leak (the hidden arm used the web more).
+  2. **A WebFetch gets its own clock.** Claude Code's WebFetch sends a separate model request (summarise the page);
+     the proxy's conversation tracking sees a new conversation and starts a fresh 900 s budget, and Claude Code
+     waits for it. 8 of 80 trials ended 62 to 812 s after their deadline this way (e.g. hidden
+     `django__django-11141__zP5DqiW`: WebFetch at 811 s, `durationMs` 900627, agent end at 1712 s). These are the
+     "proxy runs without a trial" (26 and 24). Fix for the next version (not mid-batch): turn off WebFetch and
+     WebSearch in Claude Code (`--disallowedTools`), which also closes the leak; and for every harness, run task
+     containers without internet (the Harbor agent runs outside the container, Claude Code needs only the proxy).
