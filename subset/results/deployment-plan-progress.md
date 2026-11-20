@@ -846,3 +846,33 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   deadline cuts a command wait, the agent stops at once and no longer reads the screen (no reply follows, so the read
   only adds lateness); the metadata now splits the cleanup into `interrupt_sec` (Ctrl-C) and `diff_sec` (saved diff).
   64 of 64 agent tests pass. Batch 3 round 1: 35 of 80 trials, no errors.
+- 2026-11-19 09:20: batch 3 round 1 finished 09:18 (80 of 80 trials, no errors). Qualified, of 20: hidden +5 s 15,
+  full +5 s 14, hidden +20 s 16, full +20 s 15 (batch 2's 0 s arms, 3 rounds: hidden 41 of 60, full 45 of 60).
+  Ended by time 9, 8, 9, 11 of 20. The estimated other-user load over batches 2 and 3 is 0.22 on average and 48 of
+  the 200 trials sit above 0.5; the estimate counts each of our trials at 0.8, so with 4 arms at once part of this is
+  our own load; checked again at the end of the batch. Round 2 waits for the gate.
+- 2026-11-19 10:20: load check for batch 3 round 1 (04:35 to 09:18, 16036 seconds sampled): requests running on the
+  server were 0 to 4 in every second (4 in 1861 s), never more than our own 4 trials. So no other user shared the
+  server; the 0.22 "other-user load" above is an error of the estimator, which assumes each of our trials keeps a
+  request open 0.8 of its time (the true share varies by trial). For "quiet" use the server's own count (at most our
+  trials running) rather than the estimate. Round 2 started 09:29.
+- 2026-11-20 10:20: **batch 3 finished** 2026-11-19 18:47 (240 of 240 trials, no errors; the server never ran more
+  requests than our own trials). Qualified, of 60 (with batch 2's 0 s arms): hidden 41 / 37 / 40 and full 45 / 41 /
+  38 at 0 / +5 / +20 s. Full - hidden gap: +4 (-1 to +10) at 0 s, +4 at +5 s, -2 at +20 s; difference of gaps
+  (+20 s minus 0 s) -6 per arm (-12 to +0), 20 tasks. Frozen decision: the 95% lower bound is not above 0, so "no
+  evidence that the clock helps more when replies are slower"; if anything the point estimate goes the other way,
+  as the natural-speed check of 2026-11-11 suggested. The delay cuts what fits: ended by time 19 / 22 / 25 (hidden)
+  and 9 / 20 / 26 (full) of 60, so at +20 s the full arm loses its timeout advantage. $ per qualified falls with
+  the delay (fewer turns): $0.0254 / $0.0234 / $0.0188 hidden, $0.0237 / $0.0178 / $0.0164 full. Wrong declarations
+  3 of 27, 3 of 36, 3 of 30, 6 of 34 (h5, f5, h20, f20). Lateness: P95 delivery 2.9 s (h5), 9.9 s (f5), 19.5 s
+  (h20), 3.3 s (f20), so the 5 s target is missed in 2 of 4 arms. All 5 trials more than 5 s late stopped during a
+  parallel Django test run (26 foreground processes): work stopped 0.5 to 6.9 s late (the screen read after the cut,
+  removed in v22) and the cleanup (Ctrl-C, check, saved diff) took 5.4 to 19.2 s. Next fix to test with v22's split
+  timings: end the foreground process group at once (SIGKILL after one Ctrl-C) and measure Ctrl-C and diff apart.
+  The "quiet trials" table of `ablation_report.py` is not usable for the delay arms (its load estimate marks all of
+  them quiet and drops batch 2 trials); the server count shows every trial ran on a server serving TUA-Bench alone.
+- 2026-11-20 10:10: batch 4 had waited at its gate since 2026-11-19 18:48 (15 h lost): `run_gate.sh` takes the
+  metrics URL from the config's `api_base`, which the Claude Code configs do not have (they talk to the proxy), so
+  it polled "/metrics" and never saw a quiet server. Fixed: `METRICS_URL` override, passed by `run_parallel.sh` and
+  set by `run_cc_batch.sh` from `UPSTREAM`; the gate now exits with a message when it has no URL. The batch 4 gate
+  window was restarted with the URL at 10:09 (the arm windows and proxies kept running).

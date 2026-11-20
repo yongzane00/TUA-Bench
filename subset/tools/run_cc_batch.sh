@@ -28,4 +28,4 @@ for port in 8911 8912; do
   for i in $(seq 1 30); do curl -s -m 2 -o /dev/null "http://127.0.0.1:$port/runs" && break; sleep 2; done
   curl -s -m 2 -o /dev/null "http://127.0.0.1:$port/runs" || { echo "proxy on $port did not start"; exit 1; }
 done
-bash subset/tools/run_parallel.sh cc4 qwen38-flash-next "$rounds" cc-dev-hidden-time900-rounds3 cc-dev-full-time900-rounds3
+METRICS_URL="${UPSTREAM%/v1}/metrics" bash subset/tools/run_parallel.sh cc4 qwen38-flash-next "$rounds" cc-dev-hidden-time900-rounds3 cc-dev-full-time900-rounds3

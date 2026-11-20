@@ -24,7 +24,7 @@ state=~/work/$session.state
 mkdir -p "$state" && rm -f "$state"/go-* "$state"/done-*
 
 tmux new-session -d -s "$session" -n gate -c ~/work/TUA-Bench \
-  "bash subset/tools/run_gate.sh $session $model $rounds $*; exec bash"
+  "METRICS_URL=$METRICS_URL bash subset/tools/run_gate.sh $session $model $rounds $*; exec bash"
 delay=0
 for cfg in "$@"; do
   tmux new-window -t "$session" -n "$cfg" -c ~/work/TUA-Bench \

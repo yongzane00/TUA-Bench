@@ -14,7 +14,8 @@ JOBS=/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs
 say() { echo "$(date '+%F %T') $*" | tee -a "$log"; }
 finished() { grep -l '"finished_at": *"' "$JOBS/$model/$1"/*/result.json 2>/dev/null | wc -l; }
 url=$(grep -m1 -oE 'api_base: *[^ ]+' "subset/variants/$model/${cfgs[0]}.yaml" | awk '{print $2}')
-murl="${url%/v1}/metrics"
+murl="${METRICS_URL:-${url%/v1}/metrics}"  # METRICS_URL for configs without api_base (agents behind the proxy)
+case "$murl" in http*) ;; *) echo "no model-server metrics URL (set METRICS_URL)" | tee -a "$log"; exit 1;; esac
 load() {  # prints "running waiting", or nothing if the server does not answer
   curl -sf -m 20 "$murl" | awk '/^vllm:num_requests_running\{/ {r += $2} /^vllm:num_requests_waiting\{/ {w += $2}
                                 END {if (NR) print r + 0, w + 0}'
