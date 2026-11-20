@@ -578,6 +578,14 @@ The plan lists eight checks the plugin must pass and eight items a handover must
    not time out more often (2 of 13, against 29 of 206 where it stayed low). Rare and with no sign of harm, so the
    display stays as it is. The H7 runs had no wrap-up notice; recheck on the pilot's wrap-up arm when it has run.
 
+- **Clock + check before "done" for terminus-2 (from the 2026-11-21 split).** With the clock, terminus-2 finishes 11
+  more attempts in time but solves only 6 of them; Claude Code solves 10 of its 11. Proposal: when a time-aware
+  terminus-2 says "done", one verifier call (same model, no history) sees the task, `git diff` and the output of the
+  last test command, and answers PASS or FAIL with reasons; FAIL sends the reasons back once. Cost: one reply
+  (about 20 to 40 s) inside the budget, cut by the hard deadline like any reply. H5's snapshot verifier is not
+  reused as it is: it scans the whole environment (up to 180 s), sized for TUA desktop tasks. Test on the 20 dev
+  tasks, full vs full + check, 3 rounds (120 trials, about 6 h); primary: reward 1; secondary: wrong declarations.
+
 ## Versions
 
 | Version | Repo | Commit | What changed |
