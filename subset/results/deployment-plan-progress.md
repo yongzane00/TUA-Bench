@@ -611,6 +611,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
 | v20 | harbor | `bb0307c9` | A failed model call is not a turn (plan p11 retry timing): counted in `failed_calls`, its time in the turn of the retry; tests for retries (loop and proxy) and a failing LangChain tool. 54 of 54 package tests |
 | v21 | harbor | `e6528875` | The proxy records every user message of a run's first request (`user_text`), not only the first: Codex sends its environment context as a user message before the task, so its run could not be matched to its trial. `proxy_report.py` reads `user_text` (and `first_user` in older logs). 55 of 55 package tests |
 | v22 | harbor | `519886a6` | A command wait cut by the hard deadline ends the attempt at once with no screen read; cleanup timed apart (`interrupt_sec`, `diff_sec`). In the Windows copy; WSL gets it after batch 4 |
+| v23 | harbor | `c6193f7b` | At a budget stop: Ctrl-C, then SIGKILL after 1 s for what still runs, in one call into the container (was up to two Ctrl-Cs 1 s apart, each its own call); `sigkill` count recorded. Windows copy; WSL after batch 4 |
 | 0.2.0 | harbor | `572e6af1`, `83e9be0d` | `time-budget` package release number and versions table (handover item 1) |
 | v6 | TUA-Bench | `f5f9c4f`, `011bc36` | `pilot/excluded.md` and rule 6; new split; first pilot batch configs (`swe-dev-{hidden,full,wrap120}-time900-rounds3`: 900 s, real-time clock, hard deadline, saved diff) |
 | v3 | TUA-Bench | `367a9e6` | `pilot/`: task contract, budget and logging spec, 20 + 40 Django task split, oracle config; H2 counts by time; `pilot/**` added to the redact filter in `.gitattributes` |
@@ -900,3 +901,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
      "proxy runs without a trial" (26 and 24). Fix for the next version (not mid-batch): turn off WebFetch and
      WebSearch in Claude Code (`--disallowedTools`), which also closes the leak; and for every harness, run task
      containers without internet (the Harbor agent runs outside the container, Claude Code needs only the proxy).
+- 2026-11-20 17:30: v23 (harbor, Windows copy): the stop's cleanup is one call, Ctrl-C then SIGKILL after 1 s for
+  whatever still runs; 64 of 64 agent tests pass, and the shell code ended a process that ignores Ctrl-C in 1.2 s
+  in a real bash. With v22 this targets both parts of the batch 3 lateness (work 0.5 to 6.9 s late, cleanup 5 to
+  19 s). To check after batch 4: a smoke run whose deadline falls in a parallel Django test run.
