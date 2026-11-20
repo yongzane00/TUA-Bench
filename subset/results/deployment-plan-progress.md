@@ -938,3 +938,14 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   rounds, 2 trials per arm). Checked: Claude Code runs with `--disallowedTools WebFetch WebSearch`; in the first
   trials no tool call fetched a URL (no WebFetch, WebSearch, or curl/wget of http); GitHub links appear only as text
   the model wrote. This run is an added check, not part of the frozen analysis plan; it is reported next to batch 4.
+- 2026-11-20 23:30: no-web repeat round 1 finished 23:23 (40 of 40 trials, no errors). Reward 1, of 20: hidden 11,
+  full 14 (batch 4 round 1: 11 and 15). With WebFetch and WebSearch off the proxy problems are gone: 20 of 20
+  trials per arm matched, 0 proxy runs without a trial (batch 4: 38 and 28), lateness P95 0.4 s (hidden) and 0.6 s
+  (full), max 0.6 s (batch 4: 457 and 416 s). Stopped by time 12 and 9 of 20. Rounds 2 and 3 follow.
+- 2026-11-21 04:50: **no-web repeat of batch 4 finished** 04:4x (120 of 120 trials, no errors; server serving only our
+  trials). Claude Code with WebFetch and WebSearch off: reward 1, of 60, hidden 36, full 45; full - hidden **+9 (+4
+  to +15)**, 20 tasks, 4000 resamples, seed 0 (batch 4: +9, +2 to +17). Proxy: 60 of 60 trials per arm matched, 0
+  runs without a trial, 0 close calls; lateness median 0.1 and 0.2 s, P95 0.4 and 0.5 s, max 0.6 s (target 5 s
+  met); stopped by time 34 vs 23 of 60; last in-time reply median 812 and 803 s; tool calls with a lowered timeout
+  175 (43 trials) and 143 (40 trials). Reading: the second-harness result replicates without the web leak and with
+  every stop on time; the clock gives Claude Code 9 more solved of 60 on these 20 tasks, twice in a row.
