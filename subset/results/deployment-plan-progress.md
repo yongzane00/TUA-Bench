@@ -955,3 +955,6 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   written into the analysis plan with its decision rule and configs (`cc-heldout-{hidden,full}-noweb-
   time900-rounds3`; `SET=heldout TAG=-noweb bash subset/tools/run_cc_batch.sh`), and waits for the user's
   go-ahead: running it spends the held-out set, which is the user's call.
+- 2026-11-21 05:40: held-out check done: all 40 held-out tasks reproduce (oracle 1 and 1, nop 0); over all 62 checked
+  pilot tasks, 60 reproduce (the 2 failures are the known excluded dev tasks). Grading time on the held-out tasks,
+  median about 27 s, max 79 s. Batch 5 can run on all 40 once the user agrees to spend the held-out set.
