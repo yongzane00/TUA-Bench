@@ -1,0 +1,47 @@
+# qwen38-flash-next/swe-dev-fullv25-time900-rounds3 - the batch 2 full arm (swe-dev-full-time900-rounds3), same settings,
+# run again with the v25 agent as the side-by-side control for H12 (swe-dev-check-time900-rounds3). Written by hand.
+n_attempts: 1
+n_concurrent_trials: 1
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-9296
+  - django__django-10880
+  - django__django-10914
+  - django__django-10973
+  - django__django-10999
+  - django__django-11066
+  - django__django-11087
+  - django__django-11095
+  - django__django-11099
+  - django__django-11119
+  - django__django-11133
+  - django__django-11141
+  - django__django-11149
+  - django__django-11163
+  - django__django-11179
+  - django__django-11206
+  - django__django-11211
+  - django__django-11239
+  - django__django-11265
+  - django__django-11276
+agents:
+- name: null
+  model_name: openai/qwen3.8-flash-next
+  kwargs:
+    api_base: http://<qwen38-vllm-host-2>:8000/v1
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 262144
+      max_output_tokens: 32768
+      input_cost_per_token: 1.5e-07
+      output_cost_per_token: 4.7e-07
+    time_budget_sec: 900
+    hard_deadline: true
+    clock: wall
+    save_diff_of: /testbed
+    interrupt_at_stop: true
+    report_request: true
+  import_path: harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7

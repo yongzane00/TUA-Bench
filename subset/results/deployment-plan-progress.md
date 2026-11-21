@@ -978,3 +978,10 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   finish more often with the clock; Claude Code turns that into solved tasks, terminus-2 partly into early
   "done" claims. A lead for the next version: pair the clock with a check before "done" in terminus-2 (H5's
   verifier did not help on its own, run of 2026-10-06; with the clock the early-finish case is where it would act).
+- 2026-11-21 09:00: H12 built and started (dev tasks only; the held-out set stays unspent). H12 = H7 full + one
+  check before "done" (harbor `terminus_2_harness12.py`): a verifier call sees the task, `git diff` and the last
+  terminal output; PASS is graded at once, FAIL sends the reasons back; the check is cut by the hard deadline.
+  Smoke (`swe-smoke-check-time300`, 2 trials): one check, PASS in 13.2 s, graded at once (no "Are you sure?" turn);
+  both reward 1. Dev comparison launched (tmux `h12`, quiet-start rounds): `swe-dev-check-time900-rounds3` vs
+  `swe-dev-fullv25-time900-rounds3` (the batch 2 full arm, same settings, run again side by side as the control),
+  3 rounds, 2 trials at once. Primary: reward 1, x of 60; secondary: wrong declarations, check verdicts.
