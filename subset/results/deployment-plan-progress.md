@@ -585,6 +585,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   (about 20 to 40 s) inside the budget, cut by the hard deadline like any reply. H5's snapshot verifier is not
   reused as it is: it scans the whole environment (up to 180 s), sized for TUA desktop tasks. Test on the 20 dev
   tasks, full vs full + check, 3 rounds (120 trials, about 6 h); primary: reward 1; secondary: wrong declarations.
+  **Tested 2026-11-21 (H12): no gain; the check never said FAIL** (log 2026-11-21 22:00).
 
 ## Versions
 
@@ -985,3 +986,12 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   both reward 1. Dev comparison launched (tmux `h12`, quiet-start rounds): `swe-dev-check-time900-rounds3` vs
   `swe-dev-fullv25-time900-rounds3` (the batch 2 full arm, same settings, run again side by side as the control),
   3 rounds, 2 trials at once. Primary: reward 1, x of 60; secondary: wrong declarations, check verdicts.
+- 2026-11-21 22:00: H12 done (3 rounds, 120 trials, all on a quiet server: other users' load 0.01). Solved: full 44,
+  H12 45 of 60, +1 (-5 to +7), inside the noise; $ per solved $0.0236 vs $0.0223; ended by time 13 vs 18 of 60.
+  The check ran in 47 of 60 trials (none in the 13 that ended by time without a "done"), took 28.7 s on average
+  (max 105.4 s) and said **PASS 42 times, FAIL 0 times**, UNAVAILABLE 5 times (the deadline passed during the check;
+  3 of those 5 were solved anyway). 6 of the 42 PASS verdicts were on wrong fixes, so it catches nothing.
+  Wrong declarations: full 9 of 47 finished, H12 6 of 42; the check passed all 6, so the drop comes from
+  fewer finishes, not from the check. Reading: the same model, shown only the diff and screen, approves its own
+  work. Next step for this idea, before dropping it: let the check see real test output (run the task's test
+  command, or the agent's last test run, and show the result) so a FAIL can point at a failing test.
