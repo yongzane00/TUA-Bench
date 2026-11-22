@@ -1001,3 +1001,10 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   free; writes worked again by 20:20. Per the rules, round 3 is re-run as a whole (its two broken job folders stay
   in jobs/ and are not counted). Runner fix: `run_one.sh` now logs "UNFINISHED after 2 tries" instead of silently
   marking the round done (the gate had printed "all 3 rounds done").
+- 2026-11-22 20:35: The round 3 re-run failed within a minute with the same error, and a write test from WSL then
+  failed 200 of 200 (even `mkdir -p` on existing folders): WSL's /mnt/c mount was failing, not harbor. A second
+  drvfs mount of C: (`/mnt/cfresh`, the CLAUDE.md workaround) passed 200 of 200. `run_one.sh` / `run_gate.sh` now take
+  `TUA_JOBS` (passed through by `run_parallel.sh`); round 3 restarted with
+  `TUA_JOBS=/mnt/cfresh/Users/<win-user>/Desktop/playground/TUA-Bench/jobs` (same folder on disk). Broken round 3 job
+  folders so far (left in jobs/, not counted): hidden `2026-11-22__19-24-53`, `__20-18-04`, `__20-32-20`,
+  `__20-32-33`; full `2026-11-22__19-26-17`, `__20-18-11` (plus any the re-run's first seconds left).

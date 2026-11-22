@@ -9,7 +9,7 @@ session=$1; model=$2; cfg=$3; rounds=$4; delay=$5
 export PATH="$HOME/.local/bin:$PATH"
 cd ~/work/TUA-Bench || exit 1
 state=~/work/$session.state; log=~/work/$session-$cfg.log
-JOBS=/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs
+JOBS=${TUA_JOBS:-/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs}  # TUA_JOBS=/mnt/cfresh/... when /mnt/c gives I/O errors (CLAUDE.md)
 say() { echo "$(date '+%F %T') $*" | tee -a "$log"; }
 finished() { grep -l '"finished_at": *"' "$JOBS/$model/$cfg"/*/result.json 2>/dev/null | wc -l; }
 

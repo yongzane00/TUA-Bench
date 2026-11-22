@@ -10,7 +10,7 @@ cfgs=("$@")
 IDLE_MIN=${IDLE_MIN:-10}
 cd ~/work/TUA-Bench || exit 1
 state=~/work/$session.state; log=~/work/$session-gate.log
-JOBS=/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs
+JOBS=${TUA_JOBS:-/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs}  # TUA_JOBS=/mnt/cfresh/... when /mnt/c gives I/O errors (CLAUDE.md)
 say() { echo "$(date '+%F %T') $*" | tee -a "$log"; }
 finished() { grep -l '"finished_at": *"' "$JOBS/$model/$1"/*/result.json 2>/dev/null | wc -l; }
 url=$(grep -m1 -oE 'api_base: *[^ ]+' "subset/variants/$model/${cfgs[0]}.yaml" | awk '{print $2}')
