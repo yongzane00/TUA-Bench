@@ -24,6 +24,7 @@ for r in $(seq 1 "$rounds"); do
     say "round $r: END $model/$cfg (exit ${PIPESTATUS[0]}, finished runs $(finished))"
     [ "$(finished)" -ge "$r" ] && break
   done
+  [ "$(finished)" -ge "$r" ] || say "round $r: UNFINISHED after 2 tries (restart run_parallel.sh to run it again)"
   touch "$state/done-$r-$cfg"
 done
 say "all rounds done"

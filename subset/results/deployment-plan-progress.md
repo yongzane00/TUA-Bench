@@ -995,3 +995,9 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   fewer finishes, not from the check. Reading: the same model, shown only the diff and screen, approves its own
   work. Next step for this idea, before dropping it: let the check see real test output (run the task's test
   command, or the agent's last test run, and show the result) so a FAIL can point at a failing test.
+- 2026-11-22 20:25: Batch 5 (held-out confirmation, user's go-ahead 2026-11-22) started 07:56. Rounds 1 and 2 finished
+  on a quiet server. Round 3 broke at 20:17 after 8 trials per arm: harbor got `OSError: [Errno 5] Input/output
+  error` writing trial logs on the C drive (WSL's /mnt/c), and the retry failed at once. No Windows event and 300 GB
+  free; writes worked again by 20:20. Per the rules, round 3 is re-run as a whole (its two broken job folders stay
+  in jobs/ and are not counted). Runner fix: `run_one.sh` now logs "UNFINISHED after 2 tries" instead of silently
+  marking the round done (the gate had printed "all 3 rounds done").
