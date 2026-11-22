@@ -12,7 +12,20 @@ cd ~/work/TUA-Bench || exit 1
 state=~/work/$session.state; log=~/work/$session-gate.log
 JOBS=${TUA_JOBS:-/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs}  # TUA_JOBS=/mnt/cfresh/... when /mnt/c gives I/O errors (CLAUDE.md)
 say() { echo "$(date '+%F %T') $*" | tee -a "$log"; }
-finished() { grep -l '"finished_at": *"' "$JOBS/$model/$1"/*/result.json 2>/dev/null | wc -l; }
+finished() {  # job folders with finished_at and at least one trial that did not error (an all-error run is not a round)
+  python3 - "$JOBS/$model/$1" <<'PY'
+import glob, json, sys
+n = 0
+for p in glob.glob(sys.argv[1] + "/*/result.json"):
+    try:
+        d = json.load(open(p))
+    except Exception:
+        continue
+    s = d.get("stats") or {}
+    n += bool(d.get("finished_at")) and s.get("n_errored_trials", 0) < (d.get("n_total_trials") or 1)
+print(n)
+PY
+}
 url=$(grep -m1 -oE 'api_base: *[^ ]+' "subset/variants/$model/${cfgs[0]}.yaml" | awk '{print $2}')
 murl="${METRICS_URL:-${url%/v1}/metrics}"  # METRICS_URL for configs without api_base (agents behind the proxy)
 case "$murl" in http*) ;; *) echo "no model-server metrics URL (set METRICS_URL)" | tee -a "$log"; exit 1;; esac

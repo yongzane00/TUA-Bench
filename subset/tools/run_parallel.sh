@@ -24,11 +24,11 @@ state=~/work/$session.state
 mkdir -p "$state" && rm -f "$state"/go-* "$state"/done-*
 
 tmux new-session -d -s "$session" -n gate -c ~/work/TUA-Bench \
-  "METRICS_URL=$METRICS_URL TUA_JOBS=$TUA_JOBS bash subset/tools/run_gate.sh $session $model $rounds $*; exec bash"
+  "METRICS_URL=$METRICS_URL TUA_JOBS=$TUA_JOBS DOCKER_CONFIG=$DOCKER_CONFIG bash subset/tools/run_gate.sh $session $model $rounds $*; exec bash"
 delay=0
 for cfg in "$@"; do
   tmux new-window -t "$session" -n "$cfg" -c ~/work/TUA-Bench \
-    "TUA_JOBS=$TUA_JOBS bash subset/tools/run_one.sh $session $model $cfg $rounds $delay; exec bash"
+    "TUA_JOBS=$TUA_JOBS DOCKER_CONFIG=$DOCKER_CONFIG bash subset/tools/run_one.sh $session $model $cfg $rounds $delay; exec bash"
   delay=$((delay + 60))
 done
 tmux list-windows -t "$session"

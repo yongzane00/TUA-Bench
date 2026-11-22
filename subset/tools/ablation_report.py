@@ -40,8 +40,11 @@ def load_arm(model, cfg):
     out = []
     for job in sorted(glob.glob(f"{JOBS}/{model}/{cfg}/20*/")):
         try:
-            if not json.load(open(job + "result.json")).get("finished_at"):
+            jr = json.load(open(job + "result.json"))
+            if not jr.get("finished_at"):
                 continue
+            if (jr.get("stats") or {}).get("n_errored_trials", 0) >= (jr.get("n_total_trials") or 1):
+                continue  # every trial errored (infrastructure): not a round; the round is run again as a whole
         except Exception:
             continue
         for p in glob.glob(job + "*__*/result.json"):

@@ -11,7 +11,20 @@ cd ~/work/TUA-Bench || exit 1
 state=~/work/$session.state; log=~/work/$session-$cfg.log
 JOBS=${TUA_JOBS:-/mnt/c/Users/<win-user>/Desktop/playground/TUA-Bench/jobs}  # TUA_JOBS=/mnt/cfresh/... when /mnt/c gives I/O errors (CLAUDE.md)
 say() { echo "$(date '+%F %T') $*" | tee -a "$log"; }
-finished() { grep -l '"finished_at": *"' "$JOBS/$model/$cfg"/*/result.json 2>/dev/null | wc -l; }
+finished() {  # job folders with finished_at and at least one trial that did not error (an all-error run is not a round)
+  python3 - "$JOBS/$model/$cfg" <<'PY'
+import glob, json, sys
+n = 0
+for p in glob.glob(sys.argv[1] + "/*/result.json"):
+    try:
+        d = json.load(open(p))
+    except Exception:
+        continue
+    s = d.get("stats") or {}
+    n += bool(d.get("finished_at")) and s.get("n_errored_trials", 0) < (d.get("n_total_trials") or 1)
+print(n)
+PY
+}
 
 for r in $(seq 1 "$rounds"); do
   if [ "$(finished)" -ge "$r" ]; then say "round $r already finished"; touch "$state/done-$r-$cfg"; continue; fi

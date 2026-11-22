@@ -1008,3 +1008,11 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   `TUA_JOBS=/mnt/cfresh/Users/<win-user>/Desktop/playground/TUA-Bench/jobs` (same folder on disk). Broken round 3 job
   folders so far (left in jobs/, not counted): hidden `2026-11-22__19-24-53`, `__20-18-04`, `__20-32-20`,
   `__20-32-33`; full `2026-11-22__19-26-17`, `__20-18-11` (plus any the re-run's first seconds left).
+- 2026-11-22 20:50: The /mnt/cfresh restart "finished" in 2 minutes with 40 of 40 trials errored per arm:
+  `docker endpoint for "default" not found`, because `~/.docker/contexts` is a symlink into /mnt/c. Fixes:
+  (1) our runs use `DOCKER_CONFIG=~/work/docker-config` (config.json copy; contexts and features.json linked through
+  /mnt/cfresh; buildx and desktop linked to ~/.docker), passed through by `run_parallel.sh`; the user's ~/.docker is
+  unchanged. (2) A job folder where every trial errored no longer counts as a round, in `run_one.sh` / `run_gate.sh`
+  (the restart would otherwise have skipped round 3) and in `ablation_report.py` (it would have counted 40
+  failures). Round 3 restarted 20:49. More broken round 3 folders (not counted): hidden `2026-11-22__20-45-27`,
+  full `2026-11-22__20-33-24`, `__20-33-27`, `__20-46-31`. One leftover task container of ours stopped (not removed).
