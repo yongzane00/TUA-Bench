@@ -1,6 +1,9 @@
 # qwen38-flash-next/swe-dev-tested-time900-rounds3 - swe-dev-check-time900-rounds3 with H13 (the reviewer runs one check
 # command before it judges; terminus_2_harness13.py), dev test of 2026-11-23. Written by hand from the H12 config.
 n_attempts: 1
+# setup limit 360 s -> 1440 s from round 2 (2026-11-23 19:55): Ubuntu apt downloads at 50-100 KB/s made the tool install
+# (before the agent clock starts) time out; infrastructure only, the same in both arms
+agent_setup_timeout_multiplier: 4
 n_concurrent_trials: 1
 datasets:
 - path: ../datasets/swe-bench-verified

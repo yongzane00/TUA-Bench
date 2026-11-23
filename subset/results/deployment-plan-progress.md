@@ -1061,3 +1061,10 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   mirror line, it was applied by mistake inside one live round 2 container (django-11211), which belongs to the
   discarded round. H13 round 1 checks so far: 14 checks, PASS 10 (1 on a wrong fix), FAIL 0, UNAVAILABLE 4
   (deadline during the check); the command ran in 11.
+- 2026-11-23 19:55: The mirror alone was not enough: 2 more setup timeouts (both in the control arm) in the re-run
+  round 2. The mirror answers in 0.3 s but bulk downloads from Ubuntu's servers ran at 50 to 100 KB/s (PyPI: 1.4
+  MB/s), so `apt-get update` (about 20 MB of package lists) took 3 to 6 minutes against the 360 s setup limit. Setup
+  runs before the agent's clock starts, so the fair fix is a longer setup limit: `agent_setup_timeout_multiplier: 4`
+  (1440 s) in both H13 configs, from round 2 on (round 1 ran with 360 s; its 2 setup timeouts stay counted). Round 2
+  stopped again 15 minutes in (unfinished; containers stopped, not removed) and restarted whole at 19:53. Uncounted
+  folders: control `2026-11-23__19-34-*`, H13 `2026-11-23__19-35-*`.
