@@ -586,6 +586,7 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   reused as it is: it scans the whole environment (up to 180 s), sized for TUA desktop tasks. Test on the 20 dev
   tasks, full vs full + check, 3 rounds (120 trials, about 6 h); primary: reward 1; secondary: wrong declarations.
   **Tested 2026-11-21 (H12): no gain; the check never said FAIL** (log 2026-11-21 22:00).
+  **Tested 2026-11-24 (H13, the reviewer runs one test command): -3 of 60, FAIL once; dropped** (log 2026-11-24 06:00).
 
 ## Versions
 
@@ -1068,3 +1069,13 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   (1440 s) in both H13 configs, from round 2 on (round 1 ran with 360 s; its 2 setup timeouts stay counted). Round 2
   stopped again 15 minutes in (unfinished; containers stopped, not removed) and restarted whole at 19:53. Uncounted
   folders: control `2026-11-23__19-34-*`, H13 `2026-11-23__19-35-*`.
+- 2026-11-24 06:00: H13 done (3 rounds; rounds 2 and 3 without errored trials, server ours alone). Solved: control
+  (clock only) 45, H13 44 -> **42 of 60, -3 (-7 to +1)**, inside the noise. Ended by time: 11 vs 21 of 60. Wrong
+  declarations: 8 of 49 finished vs 3 of 37. Checks: 44 in 60 trials; the command ran in 36 (35 s per check on
+  average, 110 s max); PASS 37 (3 on wrong fixes), FAIL 1 (django-10973: a real bug in the agent's env handling,
+  the trial still ended unsolved), UNAVAILABLE 6 (deadline during the check; 2 of them solved). Round 1 ran with the
+  360 s setup limit and lost 2 H13 trials to setup timeouts (control 0); counting them as solved would only move the
+  gap to -1. Reading: with evidence the reviewer still almost never objects (1 FAIL in 44), and the check's time
+  turns finishes into deadline cuts (ended by time 11 -> 21); fewer wrong declarations come from fewer finishes.
+  Together with H12, a same-model review before "done" does not help terminus-2 here; the idea is dropped. What
+  helped is the agent checking its own work during the run (Claude Code, batches 4 and 5), not a gate at the end.
