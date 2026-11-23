@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Report for a side-by-side ablation (run_parallel.sh): every arm vs the first arm, plus server load per trial.
 
-    python3 ablation_report.py <model> <label>=<config> [<label>=<config> ...] [--vs <label>] [--did A,B,C,D]  (WSL)
+    python3 ablation_report.py <model> <label>=<config> [<label>=<config> ...] [--vs <label>] [--did A,B,C,D]
+                               [--own-calls <proxy events.jsonl>,...]  (WSL)
     e.g. ablation_report.py qwen38-flash-next I0=harness0-time2400-rounds3 I1=harness7-time2400-once-rounds3 \
          I2=harness7-time2400-clock-rounds3 I3=harness7-time2400-rounds3
 
@@ -13,7 +14,9 @@ in the four arms kept together (all trials and quiet trials). Server load: for e
 running on the model server during its agent phase, from vllmtop's history (~/.local/share/vllmtop/usage.db),
 minus our own trials active at the same time (each counted at 0.8, the share of time our agents wait on the
 model). Trials with an estimated other-user load below 0.5 count as "quiet"; the arms are compared on all
-trials and on quiet trials only.
+trials and on quiet trials only. With --own-calls (the budget proxy's event logs of every arm, for agents such as
+Claude Code that send several requests at once), our own load is counted exactly instead: at each vllmtop sample,
+the proxy's model calls in flight (`model_call` events: end time `ts`, duration `seconds`) are subtracted.
 """
 import glob
 import json
@@ -73,6 +76,25 @@ def server_load(trials):
         row = c.execute("select avg(value), count(*) from samples where endpoint=? and metric='running' "
                         "and ts_ms between ? and ?", (ENDPOINT, int(t["t0"] * 1000), int(t["t1"] * 1000))).fetchone()
         t["running"] = row[0] if row and row[1] else None
+
+
+def own_calls_load(trials, paths):
+    """Other users' load per trial: mean over vllmtop samples of (running - our proxy calls in flight), floored at 0."""
+    calls = []
+    for p in paths:
+        for line in open(p):
+            d = json.loads(line)
+            if d.get("event") == "model_call" and d.get("seconds") is not None:
+                calls.append((d["ts"] - d["seconds"], d["ts"]))
+    c = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+    for t in trials:
+        rows = c.execute("select ts_ms, value from samples where endpoint=? and metric='running' "
+                         "and ts_ms between ? and ?", (ENDPOINT, int(t["t0"] * 1000), int(t["t1"] * 1000))).fetchall()
+        mine = [cl for cl in calls if cl[1] > t["t0"] and cl[0] < t["t1"]]
+        if not rows:
+            t["others"] = None
+            continue
+        t["others"] = stx.mean(max(0.0, v - sum(a <= ms / 1000 <= b for a, b in mine)) for ms, v in rows)
 
 
 def own_overlap(t, everyone):
@@ -172,6 +194,9 @@ def main():
     did = None
     if "--did" in argv:
         i = argv.index("--did"); did = argv[i + 1].split(","); argv = argv[:i] + argv[i + 2:]
+    own_calls = None
+    if "--own-calls" in argv:
+        i = argv.index("--own-calls"); own_calls = argv[i + 1].split(","); argv = argv[:i] + argv[i + 2:]
     model, pairs = sys.argv[1], [a.split("=", 1) for a in argv]
     arms = [(label, cfg, load_arm(model, cfg)) for label, cfg in pairs]
     everyone = [t for _, _, ts_ in arms for t in ts_]
@@ -179,6 +204,8 @@ def main():
     for t in everyone:
         r = t.get("running")
         t["others"] = None if r is None else max(0.0, r - OWN_SHARE * (1 + own_overlap(t, everyone)))
+    if own_calls and os.path.exists(DB):
+        own_calls_load(everyone, own_calls)
     table(arms, lambda t: True, "All trials:", ref)
     if did:
         did_line(arms, lambda t: True, did, "Difference of gaps, all trials")

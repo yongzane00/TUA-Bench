@@ -1033,3 +1033,8 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   the proxy numbers above replace them. Round 3 needed three restarts (log 2026-11-22 20:25 to 20:50); only the
   complete round 3 (`2026-11-22__21-00-20`, `__21-01-24`) counts. The held-out set is now spent: no further tuning
   is reported on it.
+- 2026-11-23 09:20: `ablation_report.py --own-calls <proxy events>,...` counts our own load exactly for proxy arms (at
+  each vllmtop sample, subtract the proxy's model calls in flight) instead of 0.8 per trial, which undercounts
+  Claude Code's parallel requests. Check on batch 5: running minus our calls averages -0.09 per sample (20 of 6,004
+  samples one or more above ours). Quiet trials with the exact count: batch 4 120 of 120, its no-web repeat 120 of 120,
+  batch 5 240 of 240 (mean other-user load 0.00 in all three; before: 36 to 136 "quiet"). Gaps unchanged.
