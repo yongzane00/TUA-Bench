@@ -1,0 +1,33 @@
+# qwen38-flash-next/swe-smoke-tested-time600 - smoke test of H13 (tested check before done) on 2 dev tasks, 600 s.
+# Written by hand from swe-smoke-check-time300.
+n_attempts: 1
+n_concurrent_trials: 2
+datasets:
+- path: ../datasets/swe-bench-verified
+  task_names:
+  - django__django-11099
+  - django__django-11133
+agents:
+- name: null
+  model_name: openai/qwen3.8-flash-next
+  kwargs:
+    api_base: http://<qwen38-vllm-host-2>:8000/v1
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 262144
+      max_output_tokens: 32768
+      input_cost_per_token: 1.5e-07
+      output_cost_per_token: 4.7e-07
+    time_budget_sec: 600
+    hard_deadline: true
+    clock: wall
+    save_diff_of: /testbed
+    interrupt_at_stop: true
+    report_request: true
+    done_checks: 1
+    check_diff_of: /testbed
+    check_cmd_sec: 120
+    check_setup: source /opt/miniconda3/bin/activate && conda activate testbed
+  import_path: harbor.agents.terminus_2.terminus_2_harness13:Terminus2Harness13

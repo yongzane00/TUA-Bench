@@ -1038,3 +1038,15 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   Claude Code's parallel requests. Check on batch 5: running minus our calls averages -0.09 per sample (20 of 6,004
   samples one or more above ours). Quiet trials with the exact count: batch 4 120 of 120, its no-web repeat 120 of 120,
   batch 5 240 of 240 (mean other-user load 0.00 in all three; before: 36 to 136 "quiet"). Gaps unchanged.
+- 2026-11-23 14:25: H13 built (harbor `terminus_2_harness13.py`, dev tasks only). H12's reviewer saw only the diff and
+  screen and never failed a claim, so H13 gives it evidence: at the first "done" the reviewer writes ONE shell
+  command (the repo's existing tests for the changed module and/or a short reproduction of the task's example; the
+  hidden grading tests are never used), the command runs in the task environment (`check_setup` activates the conda
+  env; capped at 120 s and at the time left minus 60 s), and a second reviewer call judges the diff with the real
+  output. A FAIL sends the reasons and the command back to the agent. Smoke (`swe-smoke-tested-time600`, 2 trials,
+  both reward 1): one check ran 22 existing auth tests (OK, PASS, 11 s); one ran the reviewer's own reproduction,
+  which failed on unconfigured Django settings, unrelated to the fix. A first smoke at 300 s left no time for the
+  command, and without `check_setup` the command found no Django. Dev comparison launched (tmux `h13`, quiet-start
+  rounds, 3 rounds, 2 trials per arm at once): `swe-dev-tested-time900-rounds3` vs `swe-dev-fullv25b-time900-rounds3`
+  (the clock-only control again, side by side). Primary: reward 1, x of 60; secondary: check verdicts vs rewards,
+  wrong declarations, ended by time.
