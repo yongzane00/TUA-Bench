@@ -1050,3 +1050,14 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   rounds, 3 rounds, 2 trials per arm at once): `swe-dev-tested-time900-rounds3` vs `swe-dev-fullv25b-time900-rounds3`
   (the clock-only control again, side by side). Primary: reward 1, x of 60; secondary: check verdicts vs rewards,
   wrong declarations, ended by time.
+- 2026-11-23 19:30: H13 round 1 finished (2 setup timeouts, counted as failures). Round 2 (started 19:00) lost 8
+  trials to `AgentSetupTimeoutError` in 20 minutes: every container hung at terminus-2's `apt-get update` (tmux,
+  asciinema install). From WSL, archive.ubuntu.com took over 15 s per request and security.ubuntu.com did not
+  answer, while sg.archive.ubuntu.com answered in 0.3 s. Fix (harbor `tmux_session.py`): `HARBOR_APT_MIRROR`, when
+  set, points the container's Ubuntu apt sources at that mirror before the tool install; passed through by
+  `run_parallel.sh`. Infrastructure only, the same in both arms. Round 2 stopped (its two containers stopped, not
+  removed) and re-run as a whole with `HARBOR_APT_MIRROR=http://sg.archive.ubuntu.com/ubuntu`; its broken job
+  folders `2026-11-23__19-01-22` (control) and `__19-02-02` (H13) stay in jobs/ and are not counted. While testing the
+  mirror line, it was applied by mistake inside one live round 2 container (django-11211), which belongs to the
+  discarded round. H13 round 1 checks so far: 14 checks, PASS 10 (1 on a wrong fix), FAIL 0, UNAVAILABLE 4
+  (deadline during the check); the command ran in 11.
