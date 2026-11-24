@@ -1,0 +1,105 @@
+# qwen38-flash-next/heldout80-harness0-time2400-rounds3 - batch 6 (analysis-plan.md): harness0-time2400-rounds3 on the 80 TUA tasks
+# outside the 40-task subset, 2 trials at once. Written by hand from harness0-time2400-rounds3.yaml (task list and concurrency).
+n_attempts: 1
+n_concurrent_trials: 2
+# setup limit 1440 s (slow Ubuntu apt since 2026-11-23; setup runs before the agent clock)
+agent_setup_timeout_multiplier: 4
+datasets:
+- path: tasks
+  task_names:
+  - 000-count-nuclei
+  - 001-locate-nuclei-centers
+  - 002-count-enter-key-presses
+  - 004-place-heater-for-sensors
+  - 006-extract-gym-auditorium
+  - 008-find-bird-chase-frames
+  - 010-pivot-product-revenue
+  - 011-epw-parquet-check
+  - 013-format-demographic-sheet
+  - 014-pivot-promo-revenue
+  - 015-gym-auditorium-sim
+  - 017-clean-movie-titles
+  - 019-prostate-red-overlay
+  - 022-monthly-sales-line-chart
+  - 023-comma-decimal-separator
+  - 024-wa-osm-to-idf
+  - 026-sales-cogs-column-chart
+  - 027-add-dota-dlc-cart
+  - 028-civil-division-forms
+  - 031-profile-name-thomas
+  - 032-compare-iphones
+  - 035-super-bowl-score
+  - 036-license-eligibility
+  - 037-electric-cars-under-50k
+  - 040-seattle-ny-miles-flight
+  - 041-baby-name-carl
+  - 047-set-bing-search
+  - 049-remove-dog-background
+  - 051-hide-left-dock
+  - 053-make-palette-png
+  - 055-resize-dog-layer
+  - 056-move-textbox-left
+  - 057-set-undo-steps-100
+  - 058-autosave-3-minutes
+  - 060-underline-red-text
+  - 062-add-baseball-audio
+  - 063-red-slide-numbers
+  - 064-stretch-cover-image
+  - 065-resize-slide3-slide6
+  - 066-set-slide-image-heights
+  - 068-strike-first-two-lines
+  - 070-edit-friend-image
+  - 072-save-speedtest-results
+  - 073-force-quit-frozen-doc
+  - 074-apa-references-review
+  - 075-nuclei-locations
+  - 076-make-src-gif-clip
+  - 077-corresponding-scholar-url
+  - 078-add-wednesday-lecture
+  - 079-fix-mp3-metadata
+  - 080-convert-novel-epub
+  - 081-video-frame-slide-bg
+  - 082-brighten-slide-image
+  - 083-gemini-responses-docx
+  - 084-plate-thermal-sim
+  - 085-webext-happy-scaffold
+  - 086-futian-checkin-addresses
+  - 087-spreadsheet-to-doc-table
+  - 090-ecs-grf-pass-rates
+  - 091-add-receipts-bookkeeping
+  - 092-fix-tetris-bug
+  - 093-merge-txt-document
+  - 097-slides-to-document
+  - 098-extract-email-doc-image
+  - 101-rearrange-warm-tiles
+  - 102-daily-email-report
+  - 103-download-blog-pdfs
+  - 104-arxiv-llm-workbook
+  - 105-search-cell-b6
+  - 106-create-charles-ssh-user
+  - 107-attach-aws-bill
+  - 108-create-mail-folders
+  - 110-rotate-macintosh-video
+  - 111-set-video-wallpaper
+  - 112-capture-video-frame
+  - 113-add-folders-workspace
+  - 114-nuclei-csv-open
+  - 116-bottom-left-page-numbers
+  - 117-comma-text-to-table
+  - 118-set-times-new-roman
+agents:
+- name: null
+  model_name: openai/qwen3.8-flash-next
+  kwargs:
+    api_base: http://<qwen38-vllm-host-2>:8000/v1
+    temperature: 0.7
+    reasoning_effort: xhigh
+    max_turns: null
+    model_info:
+      max_input_tokens: 262144
+      max_output_tokens: 32768
+      input_cost_per_token: 1.5e-07
+      output_cost_per_token: 4.7e-07
+    time_budget_sec: 2400
+    show_budget: false
+  import_path: harbor.agents.terminus_2.terminus_2_harness7:Terminus2Harness7

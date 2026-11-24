@@ -113,6 +113,31 @@ The dev results (batch 4 and its no-web repeat) chose one configuration: Claude 
 above -3 per 60 trials (scaled to the task count); otherwise "uncertain" or "hurts" as in batch 4. Whatever the
 result, the held-out set is then spent: no further tuning is reported on it.
 
+## Batch 6 (added 2026-11-24, before any of its trials; user's go-ahead 2026-11-24): held-out 80 TUA tasks
+
+The configuration for TUA-Bench was locked by batch 1's rule: no lighter feedback level "worked", so the full meter
+(I3) stays. Batch 6 runs I0 against I3 once on the 80 TUA tasks outside the 40-task subset, which no run has used.
+
+| Item | Fixed value |
+|---|---|
+| Model, server | qwen3.8-flash-next on the qwen3.8 vLLM server, serving TUA-Bench alone |
+| Tasks | The 80 TUA tasks not in the 40-task subset (14 easy, 63 medium, 3 hard), listed in the configs |
+| Arms | hidden `heldout80-harness0-time2400-rounds3` (I0: same stop, nothing shown), shown `heldout80-harness7-time2400-rounds3` (I3: full meter) |
+| Budget | 2400 s, monotonic clock, as batch 1 |
+| Size | 3 rounds; each round runs all 80 tasks once per arm, the two arms side by side with 2 trials each (4 at once), quiet-start rounds; about 17 h per round |
+| Primary metric | Solved trials (reward 1), x of 240 per arm |
+| Comparison | shown - hidden gap, paired bootstrap over the 80 tasks (attempts stay with their task), 4000 resamples, seed 0, 95% interval (`ablation_report.py`) |
+| Secondary | Mean reward (Harbor Mean, partial credit); the gap re-weighted to the 120-task difficulty mix; leak-adjusted (trials that ran `chrome_state.py solved` count as 0); trials ended by time; $ per solved; setup and infrastructure failures by type |
+| Pooled (secondary) | All 120 tasks: these 80 plus batch 1's I0 and I3 on the 40-task subset (3 rounds each), with the caveat that batch 1 ran on a shared server |
+
+**Decision.** The clock's gain "holds on the held-out TUA tasks" if the gap's 95% lower bound is above 0; "no harm"
+if it is above -12 of 240 (-3 per 60 trials, as batch 5); otherwise "uncertain" or "hurts". The held-out set is then
+spent.
+
+**Expected precision.** Batch 1's I3 - I0 interval on 40 tasks x 3 rounds was about +-9 of 120; with 80 tasks it
+should be about +-13 of 240. The effect seen on the subset (+7 of 120 at 3 rounds, +12 of 200 at 5) would be about
++14 of 240, so "holds" is possible but not certain; "uncertain" is a real outcome and is reported as such.
+
 ## Rules for all batches
 
 - No trial is dropped after the fact. A trial with an infrastructure error counts as a failure (missing reward = 0,
@@ -155,3 +180,5 @@ result, the held-out set is then spent: no further tuning is reported on it.
 - 2026-11-12, before any trial of batch 4: a model request that fails (an HTTP error from the server) no longer
   counts as a turn in the proxy's meter; its time goes into the turn of the agent's retry (harbor fork `bb0307c9`).
   Before, a retry made the turns that fit read too high in the full arm. Batches 1 to 3 do not use the proxy.
+- 2026-11-24, before any trial of it: batch 6 (held-out 80 TUA tasks) added, on the user's go-ahead. Batches 1 to 5 are
+  unchanged.
