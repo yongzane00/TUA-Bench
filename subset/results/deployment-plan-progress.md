@@ -1079,3 +1079,13 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   turns finishes into deadline cuts (ended by time 11 -> 21); fewer wrong declarations come from fewer finishes.
   Together with H12, a same-model review before "done" does not help terminus-2 here; the idea is dropped. What
   helped is the agent checking its own work during the run (Claude Code, batches 4 and 5), not a gate at the end.
+- 2026-11-24 14:30: The user approved the held-out 80 TUA run and the marshmallow Docker check (and asked not to restart
+  WSL). Marshmallow check started (`pilot/configs/check-mined-marshmallow.yaml`, oracle and nop, no model calls).
+  Batch 6 frozen in analysis-plan.md before any trial (I0 vs I3 at 2400 s on the 80 TUA tasks outside the subset, 3
+  rounds, 2 trials per arm at once) and started (tmux `b6`). The 80 task images are new here and harbor removes images
+  after each trial (the build cache stays), so round 1 builds each image once; Ubuntu packages download at about 0.5
+  MB/s today (archive.ubuntu.com; AARNet 0.86 MB/s; Debian 6.8 MB/s), so the configs raise the build limit to 7200 s
+  and the setup limit to 1440 s (both before the agent's clock). 113 of 120 TUA images already contain tmux; the
+  mirror rewrite now also covers Ubuntu 24.04's `.sources` files (harbor `ab60bc50`), with
+  `HARBOR_APT_MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive`. The WSL copy of `test_budget_meter.py` was stale
+  (6 failures); with the current file, 66 of 66 terminus-2 tests pass.
