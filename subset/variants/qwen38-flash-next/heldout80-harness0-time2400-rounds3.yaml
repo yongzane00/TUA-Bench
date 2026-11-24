@@ -4,6 +4,8 @@ n_attempts: 1
 n_concurrent_trials: 2
 # setup limit 1440 s (slow Ubuntu apt since 2026-11-23; setup runs before the agent clock)
 agent_setup_timeout_multiplier: 4
+# build limit 2400 s -> 7200 s: Ubuntu apt at about 0.5 MB/s (2026-11-24); builds run before the agent clock
+environment_build_timeout_multiplier: 3
 datasets:
 - path: tasks
   task_names:

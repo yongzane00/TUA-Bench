@@ -182,3 +182,5 @@ should be about +-13 of 240. The effect seen on the subset (+7 of 120 at 3 round
   Before, a retry made the turns that fit read too high in the full arm. Batches 1 to 3 do not use the proxy.
 - 2026-11-24, before any trial of it: batch 6 (held-out 80 TUA tasks) added, on the user's go-ahead. Batches 1 to 5 are
   unchanged.
+- 2026-11-24, before any trial of batch 6: its configs raise the Docker build limit to 7200 s and the agent setup limit to
+  1440 s (both run before the agent's clock; Ubuntu package downloads at about 0.5 MB/s). The arms are unchanged.
