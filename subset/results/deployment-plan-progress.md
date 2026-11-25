@@ -20,8 +20,8 @@ repos (TUA-Bench and the Harbor fork); one commit per version. Nothing is pushed
 | Framework middleware + LangChain adapter (p3) | harbor `packages/time-budget`: framework-free core (state, forecast, texts equal to the Harbor agent's) and `TimeBudgetMiddleware` for LangChain 1.4 (state per run in the agent state, meter per call outside the history, tool timing, stop, async hard deadline) | Done; 11 of 11 tests in a real `create_agent` loop; live check on qwen3.8 passed (wrap-up notice, cut at 20.0 s; the server drops a cancelled reply within 0.5 s). Since v12 also a proxy for agents that cannot be changed: stock terminus-2 in Harbor ran through it with no code change (reward 1 at 300 s and at 90 s, cut at 90.0 s) |
 | Second harness (p3; the user's goal of one plugin for every harness) | Batch 4 in the frozen analysis plan: Harbor's claude-code agent (unchanged, version pinned) through the proxy, hidden vs full, 20 dev tasks x 3 rounds; configs `cc-dev-{hidden,full}-time900-rounds3`, launcher `subset/tools/run_cc_batch.sh`; checked live on 1 task (1 trial, and 2 at once on one URL). Since v19 a Bash command running at the deadline is ended by Claude Code itself (its timeout lowered to the time left, background tasks off; scripted self-tests). A third harness, Harbor's Codex agent (responses format), ran unchanged through the proxy on 1 task: wrap-up notice at 231 s of 300 s, answer at 263 s, reward 1 | Done 2026-11-20: Claude Code full 43, hidden 34 of 60, +9 (+2 to +17); without web tools +9 (+4 to +15). **Held-out confirmation (batch 5, 2026-11-23): full 102, hidden 87 of 120, +15 (+6 to +24): holds on held-out tasks** by the frozen rule (log 2026-11-23 02:10) |
 | Hosted API replication (p9) | Self-hosted cost instead: server-hours per solved task (`server_hours.py`, section "Self-hosted cost") | Not run: there is no money for hosted APIs (the user, 2026-11-12) |
-| Business tasks and pilot (p2, p8, p11) | | Needs a partner team; public-repo technical validation is possible |
-| Held-out 80 TUA tasks, full 120 (p6) | | Configuration locked since batch 5 (2026-11-23); not started: spends the 80 held-out TUA tasks, so it waits for the user's go-ahead |
+| Business tasks and pilot (p2, p8, p11) | | Needs a partner team. Public-repo stand-in: 8 tasks mined from marshmallow's history, 6 of 8 reproduce (reference fix 1, no change 0; 2026-11-26) |
+| Held-out 80 TUA tasks, full 120 (p6) | | Done 2026-11-26 (batch 6): shown 106, hidden 95 of 240, +11 (-1 to +24): **"no harm"** by the frozen rule (lower bound not above 0); mean reward +0.055 (+0.003 to +0.110); all 120 tasks pooled with batch 1: +14 (+0 to +28) of 360 (log 2026-11-26 06:40) |
 
 ## Findings so far (finished runs, qwen3.8, 40 tasks x 5 attempts per run)
 
@@ -1089,3 +1089,18 @@ The plan lists eight checks the plugin must pass and eight items a handover must
   mirror rewrite now also covers Ubuntu 24.04's `.sources` files (harbor `ab60bc50`), with
   `HARBOR_APT_MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive`. The WSL copy of `test_budget_meter.py` was stale
   (6 failures); with the current file, 66 of 66 terminus-2 tests pass.
+- 2026-11-26 06:40: **Batch 6 done (held-out 80 TUA tasks, I0 hidden vs I3 shown, 2400 s, 3 rounds).** Solved:
+  shown 106, hidden 95 of 240, **+11 (95% CI -1 to +24)**, paired bootstrap over 80 tasks. Frozen rule: the lower bound
+  is not above 0 but is above -12, so the result is **"no harm"**, not "holds". The point estimate is close to what
+  the plan expected (+14 of 240 from the subset), and the interval misses 0 by one trial. Secondary: mean reward
+  0.517 vs 0.461, gap +0.055 (+0.003 to +0.110); gap re-weighted to the 120-task difficulty mix +11.0 (-1.3 to
+  +24.3); leak-adjusted +11 (-2 to +25) (trials that ran `chrome_state.py solved`: hidden 12, shown 10); ended by
+  time 39 vs 18 of 240; $ per solved $0.0643 vs $0.0584. Errors besides timeouts: 2, both in the hidden arm (one
+  Docker compose failure on 105-search-cell-b6, one tmux send-keys failure on 008-find-bird-chase-frames), counted
+  as failures. Server: 468 of 480 trials quiet (mean other-user load 0.10). Pooled with batch 1's I0 and I3 on the
+  40-task subset (shared-server caveat), all 120 tasks: shown 155, hidden 141 of 360, +14 (+0 to +28). The held-out
+  TUA set is now spent.
+- 2026-11-26 06:40: Marshmallow reproducibility check done (user's go-ahead 2026-11-24): 6 of 8 mined tasks
+  reproduce (reference fix 1, no change 0; grading 2 s median). marshmallow-1636 and -1775 score 1 with no change:
+  their fix's tests already pass on the parent commit, so the miner should drop a candidate whose new tests do not
+  fail before the fix. (My watcher for this check never fired: its `pgrep` pattern matched its own command line.)
